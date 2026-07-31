@@ -1,0 +1,6 @@
+{
+  "name": "Campus Lost & Found Portal",
+  "description": "College Lost and Found Management Portal featuring item reporting, privacy-first recovery flow, smart matching engine, claim verification, and admin controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
