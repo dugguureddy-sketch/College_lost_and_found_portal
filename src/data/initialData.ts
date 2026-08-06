@@ -14,6 +14,7 @@ export const CATEGORIES: { name: CategoryType; iconName: string; description: st
 ];
 
 export const CAMPUS_LOCATIONS: LocationType[] = [
+  'Custom Location',
   'Academic Block',
   'Central Library',
   'Canteen / Cafeteria',

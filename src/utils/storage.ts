@@ -400,6 +400,78 @@ export const resolveReport = (reportId: string, status: Report['status']): void 
   }
 };
 
+export const deleteMultipleItems = (itemIds: string[]): void => {
+  if (!itemIds.length) return;
+  const items = getItems();
+  const updatedItems = items.filter(i => !itemIds.includes(i.id));
+  localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(updatedItems));
+
+  // Async delete from Supabase
+  itemIds.forEach(id => deleteSupabaseItem(id));
+};
+
+export const toggleFlagMultipleItems = (itemIds: string[], isFlagged: boolean, reason?: string): void => {
+  if (!itemIds.length) return;
+  const items = getItems();
+  let modified = false;
+
+  items.forEach(item => {
+    if (itemIds.includes(item.id)) {
+      item.isFlagged = isFlagged;
+      item.flagReason = isFlagged ? (reason || 'Bulk admin flag action') : undefined;
+      modified = true;
+      updateSupabaseItem(item);
+    }
+  });
+
+  if (modified) {
+    localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+  }
+};
+
+export const updateMultipleItemStatuses = (itemIds: string[], targetStatus: Item['status']): void => {
+  if (!itemIds.length) return;
+  const items = getItems();
+  const stats = getStats();
+  let modified = false;
+
+  items.forEach(item => {
+    if (itemIds.includes(item.id)) {
+      const oldStatus = item.status;
+      if (oldStatus !== targetStatus) {
+        item.status = targetStatus;
+        modified = true;
+
+        if (targetStatus === 'Found') {
+          // Auto privacy cleanup
+          item.imageUrl = undefined;
+          item.userRegNumber = '[CLEANED - ITEM FOUND]';
+          item.userPhone = '[CLEANED - ITEM FOUND]';
+          item.finderPhone = '[CLEANED - ITEM FOUND]';
+          item.finderNote = '[CLEANED - CASE CLOSED]';
+          item.identifyingDetails = '[CLEANED FOR PRIVACY]';
+
+          if (oldStatus !== 'Found') {
+            stats.totalFoundItems += 1;
+            stats.activeCasesCount = Math.max(0, stats.activeCasesCount - 1);
+          }
+        } else if (targetStatus === 'Pending' && oldStatus === 'Found') {
+          stats.totalFoundItems = Math.max(0, stats.totalFoundItems - 1);
+          stats.activeCasesCount += 1;
+        }
+
+        updateSupabaseItem(item);
+      }
+    }
+  });
+
+  if (modified) {
+    localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+    updateSupabaseStats(stats);
+  }
+};
+
 export const resetDataToSeed = (): void => {
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
   localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(SAMPLE_USERS));

@@ -44,6 +44,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [category, setCategory] = useState<CategoryType>('Electronics');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState<LocationType>('Academic Block');
+  const [customLocation, setCustomLocation] = useState('');
   const [roomDetails, setRoomDetails] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState('02:00 PM');
@@ -76,12 +77,20 @@ export const ReportModal: React.FC<ReportModalProps> = ({
       return;
     }
 
+    const isCustom = location === 'Custom Location' || location === 'Other Campus Area';
+    if (isCustom && !customLocation.trim()) {
+      setError('Please enter your specific custom location name.');
+      return;
+    }
+
+    const finalLocation = isCustom && customLocation.trim() ? customLocation.trim() : location;
+
     onSubmit({
       title,
       type,
       category,
       description,
-      location,
+      location: finalLocation,
       roomDetails,
       date,
       time,
@@ -205,36 +214,98 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           </div>
 
           {/* Location & Room Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-black text-slate-700 uppercase text-[10px] tracking-wide mb-1">
+          <div className="space-y-3">
+            {/* Mobile & Desktop Location Selection Mode Header */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="block font-black text-slate-700 uppercase text-[10px] tracking-wide">
                 Campus Location <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={location}
-                onChange={(e) => setLocation(e.target.value as LocationType)}
-                className="w-full bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-orange-400"
-              >
-                {CAMPUS_LOCATIONS.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
+
+              {/* Quick Mode Toggle for Mobile & Phone Users */}
+              <div className="flex items-center space-x-1 bg-orange-100/90 p-1 rounded-xl text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (location === 'Custom Location') {
+                      setLocation('Academic Block');
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    location !== 'Custom Location' && location !== 'Other Campus Area'
+                      ? 'bg-white text-orange-950 shadow-sm font-black'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  📍 Preset List
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocation('Custom Location');
+                  }}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    location === 'Custom Location' || location === 'Other Campus Area'
+                      ? 'bg-orange-600 text-white shadow-sm font-black'
+                      : 'text-slate-700 hover:text-slate-950 font-extrabold'
+                  }`}
+                >
+                  ✍️ Write Custom
+                </button>
+              </div>
             </div>
 
-            <div>
-              <label className="block font-black text-slate-700 uppercase text-[10px] tracking-wide mb-1">
-                Specific Room / Spot Details
-              </label>
-              <input
-                type="text"
-                value={roomDetails}
-                onChange={(e) => setRoomDetails(e.target.value)}
-                placeholder="e.g. Room 204, Table 14, Desk near window"
-                className="w-full bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <select
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value as LocationType)}
+                  className="w-full bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-orange-400"
+                >
+                  {CAMPUS_LOCATIONS.map((loc) => (
+                    <option key={loc} value={loc}>
+                      {loc === 'Custom Location' ? '✍️ + Write Custom Location Name...' : loc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  value={roomDetails}
+                  onChange={(e) => setRoomDetails(e.target.value)}
+                  placeholder="Room / Spot e.g. Room 204, Table 14"
+                  className="w-full bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
             </div>
+
+            {/* Interactive Custom Location Input Box */}
+            {(location === 'Custom Location' || location === 'Other Campus Area') && (
+              <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-50 rounded-2xl border-2 border-orange-400 animate-slide-up space-y-1.5 shadow-md">
+                <label className="block font-black text-orange-950 text-xs flex items-center justify-between uppercase tracking-wide">
+                  <span className="flex items-center space-x-1.5">
+                    <MapPin className="w-4 h-4 text-orange-600 shrink-0" />
+                    <span>Enter Custom Location Name <span className="text-rose-500">*</span></span>
+                  </span>
+                  <span className="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full font-extrabold">
+                    Phone Ready 📱
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={customLocation}
+                  onChange={(e) => setCustomLocation(e.target.value)}
+                  placeholder="e.g. Mechanical Workshop Shed, Gate 3 ATM, Swimming Pool"
+                  className="w-full bg-white border-2 border-orange-400 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-black focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm"
+                  required
+                  autoFocus
+                />
+                <p className="text-[11px] text-orange-800 font-bold">
+                  Write any custom landmark, building name, or specific campus spot not listed in the default dropdown.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Date, Time, Color */}

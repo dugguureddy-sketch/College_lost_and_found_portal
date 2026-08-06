@@ -14,7 +14,13 @@ import {
   FileText,
   ShieldCheck,
   Ban,
-  QrCode
+  QrCode,
+  CheckSquare,
+  Square,
+  Layers,
+  Tag,
+  X,
+  ListChecks
 } from 'lucide-react';
 import { Item, User, Claim, Report, PlatformStats } from '../types';
 import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
@@ -26,7 +32,10 @@ interface AdminDashboardProps {
   claims: Claim[];
   reports: Report[];
   onDeleteItem: (itemId: string) => void;
-  onToggleFlagItem: (itemId: string, flagged: boolean) => void;
+  onDeleteMultipleItems?: (itemIds: string[]) => void;
+  onToggleFlagItem: (itemId: string, flagged: boolean, reason?: string) => void;
+  onToggleFlagMultipleItems?: (itemIds: string[], flagged: boolean) => void;
+  onUpdateMultipleItemStatuses?: (itemIds: string[], status: Item['status']) => void;
   onResolveReport: (reportId: string, status: Report['status']) => void;
   onUpdateClaimStatus: (claimId: string, status: Claim['status']) => void;
   onResetData: () => void;
@@ -41,7 +50,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   claims,
   reports,
   onDeleteItem,
+  onDeleteMultipleItems,
   onToggleFlagItem,
+  onToggleFlagMultipleItems,
+  onUpdateMultipleItemStatuses,
   onResolveReport,
   onUpdateClaimStatus,
   onResetData,
@@ -52,6 +64,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
+  // Bulk Selection state
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -61,6 +76,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   });
 
   const pendingReports = reports.filter(r => r.status === 'Pending Review');
+
+  // Selection handlers
+  const isAllFilteredSelected = filteredItems.length > 0 && filteredItems.every(i => selectedItemIds.includes(i.id));
+
+  const handleSelectAllFiltered = () => {
+    if (isAllFilteredSelected) {
+      // Unselect filtered items
+      const filteredIds = new Set(filteredItems.map(i => i.id));
+      setSelectedItemIds(prev => prev.filter(id => !filteredIds.has(id)));
+    } else {
+      // Select all filtered items
+      const newSelected = new Set([...selectedItemIds, ...filteredItems.map(i => i.id)]);
+      setSelectedItemIds(Array.from(newSelected));
+    }
+  };
+
+  const handleToggleSelectItem = (id: string) => {
+    setSelectedItemIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  // Bulk operations
+  const handleBulkDelete = () => {
+    if (selectedItemIds.length === 0) return;
+    const confirmMsg = `Are you sure you want to permanently delete ${selectedItemIds.length} selected listing(s)?`;
+    if (confirm(confirmMsg)) {
+      if (onDeleteMultipleItems) {
+        onDeleteMultipleItems(selectedItemIds);
+      } else {
+        selectedItemIds.forEach(id => onDeleteItem(id));
+      }
+      setSelectedItemIds([]);
+    }
+  };
+
+  const handleBulkFlag = (flagged: boolean) => {
+    if (selectedItemIds.length === 0) return;
+    if (onToggleFlagMultipleItems) {
+      onToggleFlagMultipleItems(selectedItemIds, flagged);
+    } else {
+      selectedItemIds.forEach(id => onToggleFlagItem(id, flagged, 'Admin bulk action'));
+    }
+    setSelectedItemIds([]);
+  };
+
+  const handleBulkStatusChange = (targetStatus: Item['status']) => {
+    if (selectedItemIds.length === 0) return;
+    if (onUpdateMultipleItemStatuses) {
+      onUpdateMultipleItemStatuses(selectedItemIds, targetStatus);
+    }
+    setSelectedItemIds([]);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-slate-800">
@@ -174,6 +242,91 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB 1: LISTINGS MANAGEMENT */}
       {activeTab === 'listings' && (
         <div className="space-y-4">
+          {/* BULK SELECTION ACTIONS BAR */}
+          {selectedItemIds.length > 0 && (
+            <div className="bg-slate-900 border-2 border-orange-500 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-4 animate-slide-up sticky top-4 z-20">
+              <div className="flex items-center space-x-3">
+                <div className="bg-orange-500 text-slate-950 font-black px-2.5 py-1 rounded-xl text-xs flex items-center space-x-1.5 shadow">
+                  <CheckSquare className="w-4 h-4" />
+                  <span>{selectedItemIds.length} Selected</span>
+                </div>
+                <div className="text-xs text-slate-300 font-medium hidden sm:block">
+                  Out of {filteredItems.length} matching listings
+                </div>
+                <button
+                  onClick={handleSelectAllFiltered}
+                  className="text-xs text-orange-400 hover:text-orange-300 font-bold underline transition-colors"
+                >
+                  {isAllFilteredSelected ? 'Deselect All' : `Select All (${filteredItems.length})`}
+                </button>
+              </div>
+
+              {/* Bulk Operations Control Group */}
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {/* Bulk Status Selector */}
+                <div className="flex items-center bg-slate-800 rounded-xl p-1 border border-slate-700">
+                  <span className="text-[10px] text-slate-400 font-bold px-2 uppercase tracking-wide">Status:</span>
+                  <button
+                    onClick={() => handleBulkStatusChange('Pending')}
+                    className="px-2.5 py-1 rounded-lg hover:bg-slate-700 text-amber-300 font-bold text-[11px] transition-colors"
+                    title="Mark all selected as Pending"
+                  >
+                    🟡 Pending
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('Recovered')}
+                    className="px-2.5 py-1 rounded-lg hover:bg-slate-700 text-orange-400 font-bold text-[11px] transition-colors"
+                    title="Mark all selected as Recovered"
+                  >
+                    🟠 Recovered
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('Found')}
+                    className="px-2.5 py-1 rounded-lg hover:bg-slate-700 text-emerald-400 font-bold text-[11px] transition-colors"
+                    title="Mark all selected as Found & Auto-Purge Privacy Data"
+                  >
+                    🟢 Found
+                  </button>
+                </div>
+
+                {/* Bulk Flag / Unflag */}
+                <button
+                  onClick={() => handleBulkFlag(true)}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold flex items-center space-x-1.5 transition-colors"
+                >
+                  <Flag className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Flag</span>
+                </button>
+
+                <button
+                  onClick={() => handleBulkFlag(false)}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold flex items-center space-x-1.5 transition-colors"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Unflag</span>
+                </button>
+
+                {/* Mass Delete Button */}
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black flex items-center space-x-1.5 shadow-md transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete ({selectedItemIds.length})</span>
+                </button>
+
+                {/* Clear Selection */}
+                <button
+                  onClick={() => setSelectedItemIds([])}
+                  className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                  title="Clear Selection"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-orange-100 shadow-sm">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -186,18 +339,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               />
             </div>
 
-            <div className="flex items-center space-x-2 text-xs font-bold">
-              <span className="text-slate-500">Status:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold"
+            <div className="flex items-center space-x-3 text-xs font-bold">
+              <button
+                onClick={handleSelectAllFiltered}
+                className="px-3 py-1.5 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-900 flex items-center space-x-1.5 text-xs font-black transition-colors"
               >
-                <option value="All">All Statuses</option>
-                <option value="Pending">🟡 Pending</option>
-                <option value="Recovered">🟠 Recovered</option>
-                <option value="Found">🟢 Found</option>
-              </select>
+                <ListChecks className="w-3.5 h-3.5 text-orange-600" />
+                <span>{isAllFilteredSelected ? 'Deselect All' : 'Select All Filtered'}</span>
+              </button>
+
+              <div className="flex items-center space-x-1.5">
+                <span className="text-slate-500">Status:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Pending">🟡 Pending</option>
+                  <option value="Recovered">🟠 Recovered</option>
+                  <option value="Found">🟢 Found</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -206,6 +369,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <table className="w-full text-left text-xs text-slate-800">
                 <thead className="bg-orange-50 text-slate-700 text-[11px] uppercase tracking-wider font-black border-b border-orange-100">
                   <tr>
+                    <th className="p-3.5 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isAllFilteredSelected}
+                        onChange={handleSelectAllFiltered}
+                        className="w-4 h-4 text-orange-500 rounded accent-orange-500 cursor-pointer"
+                        title="Select/Deselect All Filtered"
+                      />
+                    </th>
                     <th className="p-3.5">Item</th>
                     <th className="p-3.5">Type & Status</th>
                     <th className="p-3.5">Location</th>
@@ -215,65 +387,81 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-orange-100 font-medium">
-                  {filteredItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-orange-50/50 transition-colors">
-                      <td className="p-3.5 font-bold text-slate-900">
-                        <button
-                          onClick={() => onViewItemDetails(item)}
-                          className="hover:text-orange-600 text-left"
-                        >
-                          {item.title}
-                        </button>
-                        {item.isFlagged && (
-                          <span className="ml-2 text-[10px] bg-rose-100 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-black">
-                            ⚠️ FLAGGED
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black mr-1.5 ${
-                          item.type === 'Lost' ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
-                        }`}>
-                          {item.type}
-                        </span>
-                        <span className="text-slate-600 font-bold">{item.status}</span>
-                      </td>
-                      <td className="p-3.5 text-slate-600">{item.location}</td>
-                      <td className="p-3.5">
-                        <div className="font-bold text-slate-800">{item.userName}</div>
-                        <div className="text-[10px] text-slate-500 font-medium">{item.userRegNumber} • {item.userBranch}</div>
-                      </td>
-                      <td className="p-3.5 text-slate-500">{item.date}</td>
-                      <td className="p-3.5 text-right space-x-1.5">
-                        {onOpenQRCode && (
+                  {filteredItems.map((item) => {
+                    const isSelected = selectedItemIds.includes(item.id);
+                    return (
+                      <tr 
+                        key={item.id} 
+                        className={`transition-colors ${
+                          isSelected ? 'bg-amber-50/90 font-semibold' : 'hover:bg-orange-50/50'
+                        }`}
+                      >
+                        <td className="p-3.5 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectItem(item.id)}
+                            className="w-4 h-4 text-orange-500 rounded accent-orange-500 cursor-pointer"
+                          />
+                        </td>
+                        <td className="p-3.5 font-bold text-slate-900">
                           <button
-                            onClick={() => onOpenQRCode(item)}
-                            className="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-400 text-white text-[11px] font-black shadow-sm inline-flex items-center space-x-1"
-                            title="Generate Campus QR Poster"
+                            onClick={() => onViewItemDetails(item)}
+                            className="hover:text-orange-600 text-left"
                           >
-                            <QrCode className="w-3 h-3" />
-                            <span>QR</span>
+                            {item.title}
                           </button>
-                        )}
-                        <button
-                          onClick={() => onToggleFlagItem(item.id, !item.isFlagged, 'Admin manual flag')}
-                          className="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 text-[11px] font-black"
-                        >
-                          {item.isFlagged ? 'Unflag' : 'Flag'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete listing "${item.title}"?`)) {
-                              onDeleteItem(item.id);
-                            }
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-[11px] font-black transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 inline" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                          {item.isFlagged && (
+                            <span className="ml-2 text-[10px] bg-rose-100 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-black">
+                              ⚠️ FLAGGED
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3.5">
+                          <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black mr-1.5 ${
+                            item.type === 'Lost' ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
+                          }`}>
+                            {item.type}
+                          </span>
+                          <span className="text-slate-600 font-bold">{item.status}</span>
+                        </td>
+                        <td className="p-3.5 text-slate-600">{item.location}</td>
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-800">{item.userName}</div>
+                          <div className="text-[10px] text-slate-500 font-medium">{item.userRegNumber} • {item.userBranch}</div>
+                        </td>
+                        <td className="p-3.5 text-slate-500">{item.date}</td>
+                        <td className="p-3.5 text-right space-x-1.5">
+                          {onOpenQRCode && (
+                            <button
+                              onClick={() => onOpenQRCode(item)}
+                              className="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-400 text-white text-[11px] font-black shadow-sm inline-flex items-center space-x-1"
+                              title="Generate Campus QR Poster"
+                            >
+                              <QrCode className="w-3 h-3" />
+                              <span>QR</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => onToggleFlagItem(item.id, !item.isFlagged, 'Admin manual flag')}
+                            className="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 text-[11px] font-black"
+                          >
+                            {item.isFlagged ? 'Unflag' : 'Flag'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete listing "${item.title}"?`)) {
+                                onDeleteItem(item.id);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-[11px] font-black transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 inline" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

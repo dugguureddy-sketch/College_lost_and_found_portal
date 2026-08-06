@@ -23,7 +23,10 @@ import {
   markItemRecovered,
   markItemReceivedAndCleanup,
   deleteItem,
+  deleteMultipleItems,
   toggleFlagItem,
+  toggleFlagMultipleItems,
+  updateMultipleItemStatuses,
   addClaim,
   updateClaimStatus,
   addReport,
@@ -183,9 +186,27 @@ export default function App() {
     showToast('Post deleted successfully.');
   };
 
+  const handleDeleteMultipleItems = (itemIds: string[]) => {
+    deleteMultipleItems(itemIds);
+    refreshAllStates();
+    showToast(`🗑️ Successfully deleted ${itemIds.length} listings in bulk.`);
+  };
+
   const handleToggleFlagItem = (itemId: string, flagged: boolean, reason?: string) => {
     toggleFlagItem(itemId, flagged, reason);
     refreshAllStates();
+  };
+
+  const handleToggleFlagMultipleItems = (itemIds: string[], flagged: boolean) => {
+    toggleFlagMultipleItems(itemIds, flagged);
+    refreshAllStates();
+    showToast(`⚠️ ${flagged ? 'Flagged' : 'Unflagged'} ${itemIds.length} listings in bulk.`);
+  };
+
+  const handleUpdateMultipleItemStatuses = (itemIds: string[], status: Item['status']) => {
+    updateMultipleItemStatuses(itemIds, status);
+    refreshAllStates();
+    showToast(`🏷️ Status updated to "${status}" for ${itemIds.length} listings in bulk.`);
   };
 
   const handleResolveReport = (reportId: string, status: Report['status']) => {
@@ -451,7 +472,10 @@ export default function App() {
             claims={claims}
             reports={reports}
             onDeleteItem={handleDeleteItem}
+            onDeleteMultipleItems={handleDeleteMultipleItems}
             onToggleFlagItem={handleToggleFlagItem}
+            onToggleFlagMultipleItems={handleToggleFlagMultipleItems}
+            onUpdateMultipleItemStatuses={handleUpdateMultipleItemStatuses}
             onResolveReport={handleResolveReport}
             onUpdateClaimStatus={handleUpdateClaimStatus}
             onResetData={handleResetData}

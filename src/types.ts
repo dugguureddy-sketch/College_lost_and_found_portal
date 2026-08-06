@@ -24,7 +24,9 @@ export type LocationType =
   | 'Auditorium'
   | 'Administrative Block'
   | 'Bus Stand / Parking'
-  | 'Other Campus Area';
+  | 'Other Campus Area'
+  | 'Custom Location'
+  | (string & {});
 
 export type BranchType = 'CSE' | 'ECE' | 'ME' | 'EEE' | 'Civil' | 'Biotech' | 'IT' | 'MBA' | 'Other';
 export type YearType = '1st Year' | '2nd Year' | '3rd Year' | '4th Year' | 'Faculty / Staff';

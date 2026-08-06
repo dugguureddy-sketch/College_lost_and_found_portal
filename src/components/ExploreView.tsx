@@ -41,6 +41,14 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  // Dynamic location list containing default campus locations & custom user locations
+  const locationOptions = Array.from(
+    new Set([
+      ...CAMPUS_LOCATIONS.filter((l) => l !== 'Custom Location'),
+      ...items.map((i) => i.location).filter(Boolean),
+    ])
+  );
+
   // Filter Items
   const filteredItems = items.filter((item) => {
     // Type Filter
@@ -198,7 +206,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               className="w-full bg-orange-50/70 border border-orange-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
               <option value="">All Campus Locations</option>
-              {CAMPUS_LOCATIONS.map((loc) => (
+              {locationOptions.map((loc) => (
                 <option key={loc} value={loc}>
                   {loc}
                 </option>
