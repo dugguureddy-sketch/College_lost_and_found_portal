@@ -80,7 +80,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
   return (
     <div 
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static print:block cursor-pointer"
+      className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static print:block cursor-pointer"
     >
       {/* Printable CSS inject */}
       <style>

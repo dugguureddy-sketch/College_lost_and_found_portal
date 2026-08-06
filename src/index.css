@@ -4,7 +4,7 @@
   @keyframes slideUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
@@ -13,13 +13,41 @@
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUp 0.2s ease-out forwards;
+  }
+
+  /* Sharp, crystal-clear Glowing OWNER Badge Keyframe - 0 blur, 100% crisp vector outline */
+  @keyframes sharpOwnerPulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 2px #f97316, 0 2px 8px rgba(249, 115, 22, 0.4);
+    }
+    50% {
+      transform: scale(1.06);
+      box-shadow: 0 0 0 3px #fbbf24, 0 4px 12px rgba(245, 158, 11, 0.6);
+    }
+  }
+
+  .animate-glow-pop {
+    animation: sharpOwnerPulse 1.6s infinite ease-in-out;
   }
 }
 
-body {
-  background-color: #fff7ed;
-  color: #1e293b;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  -webkit-font-smoothing: antialiased;
+*, ::before, ::after {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: geometricPrecision !important;
+  font-smooth: always !important;
 }
+
+html, body {
+  background-color: #fff7ed;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: geometricPrecision !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

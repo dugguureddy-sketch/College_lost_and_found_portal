@@ -47,6 +47,7 @@ import { UserDashboard } from './components/UserDashboard';
 import { AuthModal } from './components/AuthModal';
 import { SupabaseModal } from './components/SupabaseModal';
 import { QRCodeModal } from './components/QRCodeModal';
+import { MovableNotification } from './components/MovableNotification';
 
 import { CATEGORIES } from './data/initialData';
 import { Sparkles, ArrowRight, ShieldCheck, Zap, HeartHandshake, QrCode } from 'lucide-react';
@@ -591,6 +592,13 @@ export default function App() {
           onSynced={refreshAllStates}
         />
       )}
+
+      {/* Interactive Movable Live Notification Demo Widget */}
+      <MovableNotification
+        items={items}
+        onViewItemDetails={(i) => setActiveItemForDetails(i)}
+        onOpenReportModal={handleOpenReportModal}
+      />
     </div>
   );
 }

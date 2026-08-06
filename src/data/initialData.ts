@@ -29,7 +29,7 @@ export const CAMPUS_LOCATIONS: LocationType[] = [
 export const SAMPLE_USERS: User[] = [
   {
     id: 'user-101',
-    regNumber: '22CSE1042',
+    regNumber: '250301120030',
     name: 'Amrit Rout',
     email: 'amrit.rout@campus.edu',
     branch: 'CSE',
@@ -84,7 +84,7 @@ export const INITIAL_ITEMS: Item[] = [
   {
     id: 'item-501',
     userId: 'user-101',
-    userRegNumber: '22CSE1042',
+    userRegNumber: '250301120030',
     userName: 'Amrit Rout',
     userBranch: 'CSE',
     userYear: '2nd Year',

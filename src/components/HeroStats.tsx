@@ -36,8 +36,8 @@ export const HeroStats: React.FC<HeroStatsProps> = ({
         {/* VIBRANT PALETTE HERO BANNER (Emerald Box with decorative circles) */}
         <div className="bg-emerald-500 rounded-[2.5rem] p-8 sm:p-12 shadow-xl relative overflow-hidden text-white mb-8">
           {/* Decorative Background Accents */}
-          <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-emerald-400/30 blur-xl pointer-events-none" />
-          <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full bg-emerald-600/40 blur-2xl pointer-events-none" />
+          <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-emerald-400/20 pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full bg-emerald-600/30 pointer-events-none" />
 
           <div className="relative z-10 max-w-3xl">
             <div className="inline-flex items-center space-x-2 bg-emerald-600/80 border border-emerald-400/40 rounded-full px-3.5 py-1 text-xs font-black uppercase tracking-wider text-emerald-100 mb-4 shadow-sm">
@@ -134,9 +134,9 @@ export const HeroStats: React.FC<HeroStatsProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Feature 1: Good Samaritan Badges */}
           <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 text-white shadow-md relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full pointer-events-none" />
             <div>
-              <div className="inline-flex items-center space-x-1.5 bg-black/20 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase mb-3">
+              <div className="inline-flex items-center space-x-1.5 bg-black/30 border border-white/20 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                 <span>Recognized Campus Hero Badges</span>
               </div>
@@ -158,7 +158,7 @@ export const HeroStats: React.FC<HeroStatsProps> = ({
 
           {/* Feature 2: Printable QR Code Flyer Network */}
           <div className="bg-slate-900 rounded-3xl p-6 text-white border border-slate-800 shadow-md relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-orange-500/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-orange-500/10 rounded-full pointer-events-none" />
             <div>
               <div className="inline-flex items-center space-x-1.5 bg-orange-500/20 border border-orange-500/40 px-3 py-1 rounded-full text-[11px] font-black text-orange-300 tracking-wider uppercase mb-3">
                 <Tag className="w-3.5 h-3.5 text-orange-400" />

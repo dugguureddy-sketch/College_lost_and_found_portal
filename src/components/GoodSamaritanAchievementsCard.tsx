@@ -23,6 +23,7 @@ import {
   SamaritanBadge 
 } from '../utils/achievements';
 import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
+import { getUsers } from '../utils/storage';
 
 interface GoodSamaritanAchievementsCardProps {
   currentUser: User;
@@ -49,45 +50,26 @@ export const GoodSamaritanAchievementsCard: React.FC<GoodSamaritanAchievementsCa
     setTimeout(() => setShowLogDeedSuccess(null), 4000);
   };
 
-  // Generate top samaritans for campus leaderboard
-  const sampleLeaderboard = [
-    {
-      name: currentUser.name,
-      reg: currentUser.regNumber,
-      branch: currentUser.branch,
-      helps: stats.totalHelps,
-      karma: stats.karmaPoints,
-      badge: stats.currentBadge,
-      isCurrent: true,
-    },
-    {
-      name: 'Rahul Verma',
-      reg: '21ECE088',
-      branch: 'ECE',
-      helps: 6,
-      karma: 900,
-      badge: SAMARITAN_BADGES.find((b) => b.tier === 'Gold')!,
-      isCurrent: false,
-    },
-    {
-      name: 'Priya Sharma',
-      reg: '23ME015',
-      branch: 'ME',
-      helps: 4,
-      karma: 600,
-      badge: SAMARITAN_BADGES.find((b) => b.tier === 'Silver')!,
-      isCurrent: false,
-    },
-    {
-      name: 'Amrit Rout',
-      reg: '22CSE1042',
-      branch: 'CSE',
-      helps: 2,
-      karma: 300,
-      badge: SAMARITAN_BADGES.find((b) => b.tier === 'Bronze')!,
-      isCurrent: false,
-    },
-  ].sort((a, b) => b.helps - a.helps);
+  // Generate real campus leaderboard dynamically from real registered database users
+  const allRegisteredUsers = getUsers();
+  const realLeaderboard = allRegisteredUsers.map((u) => {
+    const uStats = calculateUserSamaritanStats(u, items, claims);
+    const userFoundCount = items.filter((i) => i.userId === u.id && i.type === 'Found').length;
+    const userLostCount = items.filter((i) => i.userId === u.id && i.type === 'Lost').length;
+    return {
+      id: u.id,
+      name: u.name,
+      reg: u.regNumber,
+      branch: u.branch,
+      year: u.year,
+      helps: uStats.totalHelps,
+      karma: uStats.karmaPoints,
+      foundCount: userFoundCount,
+      lostCount: userLostCount,
+      badge: uStats.currentBadge,
+      isCurrent: u.id === currentUser.id,
+    };
+  }).sort((a, b) => b.karma - a.karma || b.helps - a.helps);
 
   return (
     <div className="bg-gradient-to-br from-orange-50/80 via-white to-amber-50/40 border-2 border-orange-200 rounded-3xl p-6 shadow-sm mb-8 space-y-6">
@@ -282,18 +264,20 @@ export const GoodSamaritanAchievementsCard: React.FC<GoodSamaritanAchievementsCa
 
       {/* Campus Samaritan Leaderboard Drawer / Preview */}
       <div className="bg-white rounded-2xl p-5 border border-orange-100 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div className="flex items-center space-x-2">
             <Trophy className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-black text-slate-900">Campus Samaritan Leaderboard</h3>
+            <h3 className="text-sm font-black text-slate-900">Live Database Samaritan Leaderboard</h3>
           </div>
-          <span className="text-xs text-slate-500 font-bold">Top Helpful Students This Month</span>
+          <span className="text-[11px] bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full text-slate-700 font-extrabold">
+            🔒 Real Database Stats Mode
+          </span>
         </div>
 
         <div className="space-y-2">
-          {sampleLeaderboard.map((user, idx) => (
+          {realLeaderboard.map((user, idx) => (
             <div
-              key={user.reg}
+              key={user.id || user.reg}
               className={`p-3 rounded-xl flex items-center justify-between text-xs font-medium border transition-colors ${
                 user.isCurrent
                   ? 'bg-orange-50/80 border-orange-200 font-bold text-slate-900'
@@ -324,8 +308,8 @@ export const GoodSamaritanAchievementsCard: React.FC<GoodSamaritanAchievementsCa
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-slate-400 font-bold">
-                    {user.reg} • {user.branch}
+                  <span className="text-[11px] text-slate-500 font-bold">
+                    {user.reg} • {user.branch} ({user.foundCount} Found • {user.lostCount} Lost)
                   </span>
                 </div>
               </div>
@@ -333,7 +317,7 @@ export const GoodSamaritanAchievementsCard: React.FC<GoodSamaritanAchievementsCa
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <span className="font-black text-slate-900 block">{user.helps} Items Helped</span>
-                  <span className="text-[10px] text-amber-600 font-bold">{user.karma} Karma</span>
+                  <span className="text-[10px] text-amber-600 font-bold">{user.karma} Karma Points</span>
                 </div>
 
                 <div className="hidden sm:block">
@@ -352,7 +336,7 @@ export const GoodSamaritanAchievementsCard: React.FC<GoodSamaritanAchievementsCa
 
       {/* Selected Badge Detail Modal */}
       {selectedBadge && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-orange-100 shadow-2xl relative space-y-4">
             <button
               onClick={() => setSelectedBadge(null)}

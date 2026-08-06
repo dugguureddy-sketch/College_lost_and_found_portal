@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const currentItems = items || getItems();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-orange-100 text-slate-800 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white border-b-2 border-orange-200 text-slate-800 shadow-sm">
       {/* Top Banner Counter Strip */}
       <div className="bg-orange-50 px-4 py-1.5 border-b border-orange-100 text-xs font-semibold text-slate-600">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
@@ -216,38 +216,50 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>🟢 Report Found</span>
           </button>
 
-          {/* User Profile */}
+          {/* Top Right Owner & User Profile Corner */}
           <div className="relative">
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
-              className="flex items-center space-x-2 bg-white hover:bg-orange-50 border-2 border-orange-100 rounded-2xl p-1.5 sm:px-2.5 shadow-sm transition-colors"
+              className="flex items-center space-x-2.5 bg-white hover:bg-orange-50 border-2 border-orange-200 hover:border-orange-400 rounded-2xl p-1.5 sm:px-3 shadow-sm transition-colors"
             >
-              <div className="w-7 h-7 rounded-full bg-slate-200 border-2 border-white shadow-md overflow-hidden flex items-center justify-center font-bold text-xs text-slate-700">
-                {currentUser.name ? currentUser.name.charAt(0) : 'U'}
-              </div>
-              <div className="hidden md:block text-left">
-                <div className="text-xs font-black text-slate-800 leading-tight flex items-center space-x-1.5">
-                  <span>{currentUser.name}</span>
+              <div className="relative shrink-0">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 border-2 border-white shadow-sm flex items-center justify-center font-black text-xs text-white">
+                  A
                 </div>
-                <div className="text-[10px] text-slate-500 font-bold leading-tight flex items-center space-x-1 mt-0.5">
-                  <GoodSamaritanBadgePill user={currentUser} items={currentItems} size="sm" />
+                {/* Active online status dot */}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+              </div>
+
+              <div className="text-left leading-tight">
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-xs font-black text-slate-900">Amrit Rout</span>
+                  
+                  {/* Glowing popping OWNER Badge - Crystal Clear & Non-Blurring */}
+                  <span className="relative inline-flex items-center space-x-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-200 shadow-sm">
+                    <span className="animate-ping absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-300 rounded-full opacity-75" />
+                    <span>👑</span>
+                    <span className="tracking-wider">OWNER</span>
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-600 font-extrabold mt-0.5 tracking-tight font-mono">
+                  250301120030 • CSE 2nd Year
                 </div>
               </div>
             </button>
 
             {/* User Dropdown */}
             {showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border-2 border-orange-100 rounded-2xl shadow-xl py-2 z-50 text-slate-800">
-                <div className="px-3.5 py-2.5 border-b border-orange-100 space-y-1">
-                  <p className="text-xs font-black text-slate-800 flex items-center justify-between">
-                    <span>{currentUser.name}</span>
-                    {currentUser.role === 'admin' && (
-                      <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded font-black">ADMIN</span>
-                    )}
-                  </p>
-                  <p className="text-[11px] text-slate-500 font-medium">{currentUser.regNumber} • {currentUser.branch} ({currentUser.year})</p>
+              <div className="absolute right-0 mt-2 w-72 bg-white border-2 border-orange-200 rounded-2xl shadow-xl py-2 z-50 text-slate-800 animate-slide-up">
+                <div className="px-3.5 py-2.5 border-b border-orange-100 space-y-1 bg-gradient-to-br from-orange-50/80 to-amber-50/40 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-black text-slate-900">Amrit Rout</p>
+                    <span className="bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm border border-amber-200">
+                      👑 OWNER
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-700 font-mono font-bold">250301120030 • CSE (2nd Year)</p>
                   <div className="pt-1">
-                    <GoodSamaritanBadgePill user={currentUser} items={currentItems} size="sm" showKarma />
+                    <GoodSamaritanBadgePill user={{ ...currentUser, name: 'Amrit Rout', regNumber: '250301120030', branch: 'CSE', year: '2nd Year' }} items={currentItems} size="sm" showKarma />
                   </div>
                 </div>
 
