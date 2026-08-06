@@ -8,17 +8,22 @@ import {
   ShieldCheck, 
   ArrowUpRight,
   PhoneCall,
-  UserCheck
+  UserCheck,
+  QrCode
 } from 'lucide-react';
 import { Item } from '../types';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
+import { getItems } from '../utils/storage';
 
 interface ItemCardProps {
   item: Item;
+  allItems?: Item[];
   onViewDetails: (item: Item) => void;
+  onOpenQRCode?: (item: Item) => void;
   matchScore?: number;
 }
 
-export const ItemCard: React.FC<ItemCardProps> = ({ item, onViewDetails, matchScore }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({ item, allItems, onViewDetails, onOpenQRCode, matchScore }) => {
   const getStatusBadge = () => {
     switch (item.status) {
       case 'Pending':
@@ -129,22 +134,48 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, onViewDetails, matchSc
         </div>
 
         {/* Card Footer */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-          <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 font-bold">
-            <UserCheck className="w-3.5 h-3.5 text-orange-500" />
-            <span>{item.userBranch} • {item.userYear}</span>
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 font-bold overflow-hidden">
+            <GoodSamaritanBadgePill
+              user={{
+                id: item.userId,
+                regNumber: item.userRegNumber,
+                name: item.userName,
+                branch: item.userBranch,
+                year: item.userYear,
+                phone: item.userPhone,
+              }}
+              items={allItems || getItems()}
+              size="sm"
+            />
           </div>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(item);
-            }}
-            className="text-xs font-black text-orange-500 hover:text-orange-600 flex items-center space-x-1 uppercase tracking-wider"
-          >
-            <span>View Details</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {onOpenQRCode && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenQRCode(item);
+                }}
+                title="Get QR Code & Campus Printable Poster"
+                className="p-1.5 text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition-colors flex items-center space-x-1 text-[11px] font-bold"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">QR</span>
+              </button>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(item);
+              }}
+              className="text-xs font-black text-orange-500 hover:text-orange-600 flex items-center space-x-1 uppercase tracking-wider"
+            >
+              <span>View Details</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

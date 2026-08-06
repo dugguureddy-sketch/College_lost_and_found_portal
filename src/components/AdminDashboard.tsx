@@ -13,9 +13,11 @@ import {
   UserCheck,
   FileText,
   ShieldCheck,
-  Ban
+  Ban,
+  QrCode
 } from 'lucide-react';
 import { Item, User, Claim, Report, PlatformStats } from '../types';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
 
 interface AdminDashboardProps {
   stats: PlatformStats;
@@ -29,6 +31,7 @@ interface AdminDashboardProps {
   onUpdateClaimStatus: (claimId: string, status: Claim['status']) => void;
   onResetData: () => void;
   onViewItemDetails: (item: Item) => void;
+  onOpenQRCode?: (item: Item) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -43,6 +46,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateClaimStatus,
   onResetData,
   onViewItemDetails,
+  onOpenQRCode,
 }) => {
   const [activeTab, setActiveTab] = useState<'listings' | 'users' | 'reports' | 'claims' | 'analytics'>('listings');
   const [searchQuery, setSearchQuery] = useState('');
@@ -240,7 +244,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="text-[10px] text-slate-500 font-medium">{item.userRegNumber} • {item.userBranch}</div>
                       </td>
                       <td className="p-3.5 text-slate-500">{item.date}</td>
-                      <td className="p-3.5 text-right space-x-2">
+                      <td className="p-3.5 text-right space-x-1.5">
+                        {onOpenQRCode && (
+                          <button
+                            onClick={() => onOpenQRCode(item)}
+                            className="px-2.5 py-1 rounded-lg bg-orange-500 hover:bg-orange-400 text-white text-[11px] font-black shadow-sm inline-flex items-center space-x-1"
+                            title="Generate Campus QR Poster"
+                          >
+                            <QrCode className="w-3 h-3" />
+                            <span>QR</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => onToggleFlagItem(item.id, !item.isFlagged, 'Admin manual flag')}
                           className="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 text-[11px] font-black"
@@ -358,6 +372,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <thead className="bg-orange-50 text-slate-700 text-[11px] uppercase font-black border-b border-orange-100">
               <tr>
                 <th className="p-3.5">Name</th>
+                <th className="p-3.5">Samaritan Rank & Karma</th>
                 <th className="p-3.5">Reg Number</th>
                 <th className="p-3.5">Branch & Year</th>
                 <th className="p-3.5">Phone</th>
@@ -368,6 +383,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-orange-50/50">
                   <td className="p-3.5 font-black text-slate-800">{u.name}</td>
+                  <td className="p-3.5">
+                    <GoodSamaritanBadgePill user={u} items={items} size="sm" showKarma />
+                  </td>
                   <td className="p-3.5 text-slate-600 font-mono font-bold">{u.regNumber}</td>
                   <td className="p-3.5 text-slate-600">{u.branch} • {u.year}</td>
                   <td className="p-3.5 text-orange-600 font-bold">{u.phone}</td>

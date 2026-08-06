@@ -130,6 +130,55 @@ export const HeroStats: React.FC<HeroStatsProps> = ({
           </div>
         </div>
 
+        {/* PUBLIC FEATURE HIGHLIGHT: GOOD SAMARITAN BADGES & QR FLYER NETWORK */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Feature 1: Good Samaritan Badges */}
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 text-white shadow-md relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+            <div>
+              <div className="inline-flex items-center space-x-1.5 bg-black/20 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase mb-3">
+                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                <span>Recognized Campus Hero Badges</span>
+              </div>
+              <h3 className="text-xl font-black tracking-tight mb-2">
+                Good Samaritan Achievement System 🏅
+              </h3>
+              <p className="text-xs text-amber-50 leading-relaxed font-medium mb-4">
+                Students earn verified Samaritan badges (Bronze, Silver, Gold, Diamond) and Karma points by returning lost belongings. Badges are displayed on profile cards and listing details to build campus trust.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/20 text-xs font-extrabold">
+              <span className="bg-white/20 px-2.5 py-1 rounded-full text-white">🥉 Bronze (1 Help)</span>
+              <span className="bg-white/20 px-2.5 py-1 rounded-full text-white">🥈 Silver (3 Helps)</span>
+              <span className="bg-white/20 px-2.5 py-1 rounded-full text-white">🥇 Gold (5 Helps)</span>
+              <span className="bg-white/20 px-2.5 py-1 rounded-full text-white">💎 Diamond (10 Helps)</span>
+            </div>
+          </div>
+
+          {/* Feature 2: Printable QR Code Flyer Network */}
+          <div className="bg-slate-900 rounded-3xl p-6 text-white border border-slate-800 shadow-md relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-orange-500/10 rounded-full blur-xl pointer-events-none" />
+            <div>
+              <div className="inline-flex items-center space-x-1.5 bg-orange-500/20 border border-orange-500/40 px-3 py-1 rounded-full text-[11px] font-black text-orange-300 tracking-wider uppercase mb-3">
+                <Tag className="w-3.5 h-3.5 text-orange-400" />
+                <span>Instant Poster Generator</span>
+              </div>
+              <h3 className="text-xl font-black tracking-tight mb-2">
+                Printable QR Code Campus Flyers 📱
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4">
+                Every lost or found item generates a custom high-resolution QR poster formatted for campus bulletin boards. Anyone scanning the flyer with a smartphone opens the exact listing directly!
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs font-bold text-orange-400">
+              <span>✓ Auto-formatted A4 / Letter Flyer Layout</span>
+              <span>✓ Instant Mobile Deep Link Scan</span>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Search & Category Bar */}
         <div className="max-w-3xl mx-auto">
           <div className="bg-white border-2 border-orange-100 rounded-2xl p-2 flex items-center shadow-sm">

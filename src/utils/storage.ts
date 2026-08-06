@@ -1,5 +1,22 @@
-import { Item, User, PlatformStats, Claim, Report, ItemStatus } from '../types';
+import { Item, User, PlatformStats, Claim, Report } from '../types';
 import { INITIAL_ITEMS, INITIAL_STATS, SAMPLE_USERS } from '../data/initialData';
+import {
+  fetchSupabaseItems,
+  insertSupabaseItem,
+  updateSupabaseItem,
+  deleteSupabaseItem,
+  fetchSupabaseUsers,
+  insertSupabaseUser,
+  fetchSupabaseClaims,
+  insertSupabaseClaim,
+  updateSupabaseClaimStatus,
+  fetchSupabaseReports,
+  insertSupabaseReport,
+  updateSupabaseReportStatus,
+  fetchSupabaseStats,
+  updateSupabaseStats,
+  seedSupabaseIfEmpty,
+} from '../lib/supabase';
 
 const STORAGE_KEYS = {
   ITEMS: 'campus_lost_found_items_v2',
@@ -10,7 +27,7 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'campus_lost_found_current_user_v2',
 };
 
-// Initialize default storage if empty
+// Initialize default storage & sync with Supabase
 export const initializeStorage = (): void => {
   if (!localStorage.getItem(STORAGE_KEYS.ITEMS)) {
     localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
@@ -28,8 +45,46 @@ export const initializeStorage = (): void => {
     localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
   }
   if (!localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) {
-    // Default logged-in user: Amrit Rout
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(SAMPLE_USERS[0]));
+  }
+
+  // Asynchronously seed/sync Supabase
+  seedSupabaseIfEmpty().then(() => {
+    syncFromSupabase();
+  });
+};
+
+// Sync data from Supabase into local cache if available
+export const syncFromSupabase = async (): Promise<boolean> => {
+  try {
+    const remoteItems = await fetchSupabaseItems();
+    if (remoteItems && remoteItems.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(remoteItems));
+    }
+
+    const remoteUsers = await fetchSupabaseUsers();
+    if (remoteUsers && remoteUsers.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(remoteUsers));
+    }
+
+    const remoteClaims = await fetchSupabaseClaims();
+    if (remoteClaims) {
+      localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(remoteClaims));
+    }
+
+    const remoteReports = await fetchSupabaseReports();
+    if (remoteReports) {
+      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(remoteReports));
+    }
+
+    const remoteStats = await fetchSupabaseStats();
+    if (remoteStats) {
+      localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(remoteStats));
+    }
+
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -58,7 +113,6 @@ export const getStats = (): PlatformStats => {
     if (!data) return INITIAL_STATS;
     const parsed: PlatformStats = JSON.parse(data);
     
-    // Derive live counts from items and users
     const items = getItems();
     const users = getUsers();
     const foundCountFromItems = items.filter(i => i.status === 'Found').length;
@@ -66,7 +120,7 @@ export const getStats = (): PlatformStats => {
     return {
       totalUsers: Math.max(parsed.totalUsers || 0, users.length),
       totalLostItems: Math.max(parsed.totalLostItems || 0, items.filter(i => i.type === 'Lost').length),
-      totalFoundItems: (parsed.totalFoundItems || 31) + foundCountFromItems,
+      totalFoundItems: Math.max(parsed.totalFoundItems || 0, foundCountFromItems),
       activeCasesCount: items.filter(i => i.status !== 'Found').length,
     };
   } catch {
@@ -101,7 +155,7 @@ export const getCurrentUser = (): User => {
   }
 };
 
-// Setters & Actions
+// Setters & Actions (Local + Supabase async write)
 export const setCurrentUser = (user: User): void => {
   localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
 };
@@ -118,10 +172,13 @@ export const registerUser = (user: User): User => {
   localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
   setCurrentUser(user);
   
-  // Increment permanent totalUsers counter
   const stats = getStats();
   stats.totalUsers += 1;
   localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+  
+  // Async write to Supabase
+  insertSupabaseUser(user);
+  updateSupabaseStats(stats);
   
   return user;
 };
@@ -138,7 +195,6 @@ export const addItem = (newItem: Omit<Item, 'id' | 'createdAt' | 'status'>): Ite
   const updatedItems = [createdItem, ...items];
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(updatedItems));
 
-  // Update permanent totalLostItems or stats
   const stats = getStats();
   if (createdItem.type === 'Lost') {
     stats.totalLostItems += 1;
@@ -146,12 +202,13 @@ export const addItem = (newItem: Omit<Item, 'id' | 'createdAt' | 'status'>): Ite
   stats.activeCasesCount += 1;
   localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
 
+  // Async write to Supabase
+  insertSupabaseItem(createdItem);
+  updateSupabaseStats(stats);
+
   return createdItem;
 };
 
-/**
- * Mark Item as RECOVERED (🟠) when finder clicks "YES, I'VE FOUND THIS ITEM"
- */
 export const markItemRecovered = (itemId: string, finderPhone: string, finderNote?: string): Item | null => {
   const items = getItems();
   const itemIndex = items.findIndex(i => i.id === itemId);
@@ -162,13 +219,13 @@ export const markItemRecovered = (itemId: string, finderPhone: string, finderNot
   items[itemIndex].finderNote = finderNote || 'Finder provided contact details for physical handoff.';
 
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+
+  // Async update to Supabase
+  updateSupabaseItem(items[itemIndex]);
+
   return items[itemIndex];
 };
 
-/**
- * Confirm Received -> Mark Item as FOUND (🟢) and execute Privacy Auto-Cleanup!
- * Removes temporary phone numbers, contact details, private identifies, and updates permanent stats!
- */
 export const markItemReceivedAndCleanup = (itemId: string): Item | null => {
   const items = getItems();
   const itemIndex = items.findIndex(i => i.id === itemId);
@@ -185,11 +242,14 @@ export const markItemReceivedAndCleanup = (itemId: string): Item | null => {
 
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
 
-  // Permanently Increment Total Items Found counter
   const stats = getStats();
   stats.totalFoundItems += 1;
   stats.activeCasesCount = Math.max(0, stats.activeCasesCount - 1);
   localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+
+  // Async update to Supabase
+  updateSupabaseItem(item);
+  updateSupabaseStats(stats);
 
   return item;
 };
@@ -198,6 +258,9 @@ export const deleteItem = (itemId: string): void => {
   const items = getItems();
   const updatedItems = items.filter(i => i.id !== itemId);
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(updatedItems));
+
+  // Async delete from Supabase
+  deleteSupabaseItem(itemId);
 };
 
 export const toggleFlagItem = (itemId: string, isFlagged: boolean, reason?: string): void => {
@@ -207,6 +270,9 @@ export const toggleFlagItem = (itemId: string, isFlagged: boolean, reason?: stri
     items[itemIndex].isFlagged = isFlagged;
     items[itemIndex].flagReason = reason;
     localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+    
+    // Async update to Supabase
+    updateSupabaseItem(items[itemIndex]);
   }
 };
 
@@ -219,6 +285,10 @@ export const addClaim = (claim: Omit<Claim, 'id' | 'createdAt' | 'status'>): Cla
     createdAt: new Date().toISOString(),
   };
   localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify([newClaim, ...claims]));
+
+  // Async write to Supabase
+  insertSupabaseClaim(newClaim);
+
   return newClaim;
 };
 
@@ -228,7 +298,14 @@ export const updateClaimStatus = (claimId: string, status: Claim['status']): voi
   if (idx !== -1) {
     claims[idx].status = status;
     localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(claims));
+
+    // Async update to Supabase
+    updateClaimStatusInSupabase(claimId, status);
   }
+};
+
+const updateClaimStatusInSupabase = async (claimId: string, status: Claim['status']) => {
+  await updateSupabaseClaimStatus(claimId, status);
 };
 
 export const addReport = (report: Omit<Report, 'id' | 'createdAt' | 'status'>): Report => {
@@ -241,8 +318,10 @@ export const addReport = (report: Omit<Report, 'id' | 'createdAt' | 'status'>): 
   };
   localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([newReport, ...reports]));
   
-  // Also flag the item
   toggleFlagItem(report.itemId, true, report.reason);
+
+  // Async write to Supabase
+  insertSupabaseReport(newReport);
 
   return newReport;
 };
@@ -253,6 +332,9 @@ export const resolveReport = (reportId: string, status: Report['status']): void 
   if (idx !== -1) {
     reports[idx].status = status;
     localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+
+    // Async update to Supabase
+    updateSupabaseReportStatus(reportId, status);
   }
 };
 
@@ -263,4 +345,8 @@ export const resetDataToSeed = (): void => {
   localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify([]));
   localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
   localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(SAMPLE_USERS[0]));
+
+  // Async reset Supabase
+  seedSupabaseIfEmpty();
 };
+

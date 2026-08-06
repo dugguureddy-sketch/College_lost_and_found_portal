@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { Item, MatchResult } from '../types';
 import { findSmartMatchesForItem } from '../utils/matching';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
+import { getItems } from '../utils/storage';
 
 interface SmartMatchPanelProps {
   items: Item[];
@@ -113,44 +115,77 @@ export const SmartMatchPanel: React.FC<SmartMatchPanelProps> = ({
               {/* Pair Cards Side by Side */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Lost Side */}
-                <div className="bg-rose-50/50 rounded-2xl p-4 border border-rose-200 text-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-rose-500 text-white font-black px-2.5 py-0.5 rounded-lg text-[11px]">
-                      🔴 LOST REPORT
-                    </span>
-                    <span className="text-slate-500 font-bold text-[11px]">by {lostItem.userName} ({lostItem.userBranch})</span>
+                <div className="bg-rose-50/50 rounded-2xl p-4 border border-rose-200 text-xs flex flex-col justify-between space-y-2">
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-1 mb-2">
+                      <span className="bg-rose-500 text-white font-black px-2.5 py-0.5 rounded-lg text-[11px]">
+                        🔴 LOST REPORT
+                      </span>
+                      <GoodSamaritanBadgePill
+                        user={{
+                          id: lostItem.userId,
+                          regNumber: lostItem.userRegNumber,
+                          name: lostItem.userName,
+                          branch: lostItem.userBranch,
+                          year: lostItem.userYear,
+                          phone: lostItem.userPhone,
+                        }}
+                        items={items}
+                        size="sm"
+                      />
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm mb-1">{lostItem.title}</h4>
+                    <div className="text-slate-600 space-y-0.5 text-[11px] font-medium">
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="w-3 h-3 text-rose-500" />
+                        <span>{lostItem.location} ({lostItem.roomDetails})</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        <span>{lostItem.date}</span>
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="font-black text-slate-800 text-sm mb-1">{lostItem.title}</h4>
-                  <div className="text-slate-600 space-y-0.5 text-[11px] font-medium">
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="w-3 h-3 text-rose-500" />
-                      <span>{lostItem.location} ({lostItem.roomDetails})</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
-                      <span>{lostItem.date}</span>
-                    </div>
+                  <div className="text-[11px] text-slate-500 font-bold border-t border-rose-100 pt-1.5">
+                    Posted by: {lostItem.userName} ({lostItem.userRegNumber})
                   </div>
                 </div>
 
                 {/* Found Side */}
-                <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-200 text-xs">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="bg-emerald-500 text-white font-black px-2.5 py-0.5 rounded-lg text-[11px]">
-                      🟢 FOUND REPORT
-                    </span>
-                    <span className="text-slate-500 font-bold text-[11px]">by {foundItem.userName} ({foundItem.userBranch})</span>
+                <div className="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-200 text-xs flex flex-col justify-between space-y-2">
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-1 mb-2">
+                      <span className="bg-emerald-500 text-white font-black px-2.5 py-0.5 rounded-lg text-[11px]">
+                        🟢 FOUND REPORT
+                      </span>
+                      <GoodSamaritanBadgePill
+                        user={{
+                          id: foundItem.userId,
+                          regNumber: foundItem.userRegNumber,
+                          name: foundItem.userName,
+                          branch: foundItem.userBranch,
+                          year: foundItem.userYear,
+                          phone: foundItem.userPhone,
+                        }}
+                        items={items}
+                        size="sm"
+                        showKarma
+                      />
+                    </div>
+                    <h4 className="font-black text-slate-800 text-sm mb-1">{foundItem.title}</h4>
+                    <div className="text-slate-600 space-y-0.5 text-[11px] font-medium">
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="w-3 h-3 text-emerald-600" />
+                        <span>{foundItem.location} ({foundItem.roomDetails})</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        <span>{foundItem.date}</span>
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="font-black text-slate-800 text-sm mb-1">{foundItem.title}</h4>
-                  <div className="text-slate-600 space-y-0.5 text-[11px] font-medium">
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="w-3 h-3 text-emerald-600" />
-                      <span>{foundItem.location} ({foundItem.roomDetails})</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
-                      <span>{foundItem.date}</span>
-                    </div>
+                  <div className="text-[11px] text-slate-500 font-bold border-t border-emerald-100 pt-1.5">
+                    Posted by: {foundItem.userName} ({foundItem.userRegNumber})
                   </div>
                 </div>
               </div>

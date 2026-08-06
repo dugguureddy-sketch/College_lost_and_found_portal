@@ -45,14 +45,28 @@ import { SmartMatchPanel } from './components/SmartMatchPanel';
 import { AdminDashboard } from './components/AdminDashboard';
 import { UserDashboard } from './components/UserDashboard';
 import { AuthModal } from './components/AuthModal';
+import { SupabaseModal } from './components/SupabaseModal';
+import { QRCodeModal } from './components/QRCodeModal';
 
 import { CATEGORIES } from './data/initialData';
-import { Sparkles, ArrowRight, ShieldCheck, Zap, HeartHandshake } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Zap, HeartHandshake, QrCode } from 'lucide-react';
 
 export default function App() {
-  // Initialize storage once
+  // Initialize storage once & check URL for scanned QR deep links
   useEffect(() => {
     initializeStorage();
+
+    // Check if URL search params contains ?itemId=... or ?item=...
+    const params = new URLSearchParams(window.location.search);
+    const itemIdFromUrl = params.get('itemId') || params.get('item');
+    if (itemIdFromUrl) {
+      const allCurrentItems = getItems();
+      const targetItem = allCurrentItems.find((i) => i.id === itemIdFromUrl);
+      if (targetItem) {
+        setActiveItemForDetails(targetItem);
+        showToast(`📱 Scanned QR Code! Opened item details for "${targetItem.title}"`);
+      }
+    }
   }, []);
 
   // Application States
@@ -73,12 +87,14 @@ export default function App() {
 
   // Modals state
   const [activeItemForDetails, setActiveItemForDetails] = useState<Item | null>(null);
+  const [activeItemForQRCode, setActiveItemForQRCode] = useState<Item | null>(null);
   const [reportModalType, setReportModalType] = useState<ItemType | null>(null);
   const [itemForFoundModal, setItemForFoundModal] = useState<Item | null>(null);
   const [itemForConfirmReceivedModal, setItemForConfirmReceivedModal] = useState<Item | null>(null);
   const [itemForClaimModal, setItemForClaimModal] = useState<Item | null>(null);
   const [itemForReportSuspiciousModal, setItemForReportSuspiciousModal] = useState<Item | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
 
   // Success Notification banner
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -221,10 +237,12 @@ export default function App() {
       <Navbar
         currentUser={currentUser}
         stats={stats}
+        items={items}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenReportModal={handleOpenReportModal}
         onOpenAuthModal={() => setShowAuthModal(true)}
+        onOpenSupabaseModal={() => setShowSupabaseModal(true)}
         onLogout={() => setShowAuthModal(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -304,7 +322,9 @@ export default function App() {
                     <ItemCard
                       key={item.id}
                       item={item}
+                      allItems={items}
                       onViewDetails={(i) => setActiveItemForDetails(i)}
+                      onOpenQRCode={(i) => setActiveItemForQRCode(i)}
                     />
                   ))}
                 </div>
@@ -332,7 +352,9 @@ export default function App() {
                     <ItemCard
                       key={item.id}
                       item={item}
+                      allItems={items}
                       onViewDetails={(i) => setActiveItemForDetails(i)}
+                      onOpenQRCode={(i) => setActiveItemForQRCode(i)}
                     />
                   ))}
                 </div>
@@ -386,6 +408,7 @@ export default function App() {
           <ExploreView
             items={items}
             onViewDetails={(i) => setActiveItemForDetails(i)}
+            onOpenQRCode={(i) => setActiveItemForQRCode(i)}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             selectedCategory={selectedCategory}
@@ -414,6 +437,7 @@ export default function App() {
             onViewItemDetails={(i) => setActiveItemForDetails(i)}
             onOpenConfirmReceivedModal={(i) => setItemForConfirmReceivedModal(i)}
             onDeleteItem={handleDeleteItem}
+            onOpenQRCode={(i) => setActiveItemForQRCode(i)}
           />
         )}
 
@@ -431,6 +455,7 @@ export default function App() {
             onUpdateClaimStatus={handleUpdateClaimStatus}
             onResetData={handleResetData}
             onViewItemDetails={(i) => setActiveItemForDetails(i)}
+            onOpenQRCode={(i) => setActiveItemForQRCode(i)}
           />
         )}
       </main>
@@ -478,6 +503,25 @@ export default function App() {
             setItemForReportSuspiciousModal(i);
           }}
           onSelectMatchingItem={(i) => setActiveItemForDetails(i)}
+          onOpenQRCode={(i) => {
+            setActiveItemForDetails(null);
+            setActiveItemForQRCode(i);
+          }}
+        />
+      )}
+
+      {/* QR Code & Campus Printable Flyer Modal */}
+      {activeItemForQRCode && (
+        <QRCodeModal
+          item={activeItemForQRCode}
+          onClose={() => setActiveItemForQRCode(null)}
+          onSimulateScan={(itemId) => {
+            const target = items.find((i) => i.id === itemId);
+            if (target) {
+              setActiveItemForDetails(target);
+              showToast(`📱 Scanned QR Code! Opened item details for "${target.title}"`);
+            }
+          }}
         />
       )}
 
@@ -537,6 +581,14 @@ export default function App() {
           onClose={() => setShowAuthModal(false)}
           onSelectUser={handleSelectUser}
           onRegisterUser={handleRegisterUser}
+        />
+      )}
+
+      {/* 8. Supabase Database Inspector & SQL Schema Modal */}
+      {showSupabaseModal && (
+        <SupabaseModal
+          onClose={() => setShowSupabaseModal(false)}
+          onSynced={refreshAllStates}
         />
       )}
     </div>

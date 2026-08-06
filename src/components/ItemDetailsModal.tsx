@@ -13,10 +13,13 @@ import {
   User, 
   ArrowRight,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  QrCode,
+  Printer
 } from 'lucide-react';
 import { Item, User as UserType } from '../types';
 import { findSmartMatchesForItem } from '../utils/matching';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
 
 interface ItemDetailsModalProps {
   item: Item;
@@ -28,6 +31,7 @@ interface ItemDetailsModalProps {
   onOpenClaimModal: (item: Item) => void;
   onOpenReportSuspiciousModal: (item: Item) => void;
   onSelectMatchingItem: (item: Item) => void;
+  onOpenQRCode?: (item: Item) => void;
 }
 
 export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
@@ -40,6 +44,7 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
   onOpenClaimModal,
   onOpenReportSuspiciousModal,
   onSelectMatchingItem,
+  onOpenQRCode,
 }) => {
   // Find potential matches for this item
   const matches = findSmartMatchesForItem(item, allItems, 35);
@@ -200,7 +205,7 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
 
         {/* Poster Info Box */}
         <div className="mb-6 p-4 rounded-2xl bg-orange-50/70 border border-orange-100 text-xs">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center font-black text-white text-xs">
                 {item.userName ? item.userName.charAt(0) : 'S'}
@@ -211,9 +216,24 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
               </div>
             </div>
 
-            <span className="bg-white border border-orange-200 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold">
-              ID: {item.userRegNumber}
-            </span>
+            <div className="flex items-center space-x-2">
+              <GoodSamaritanBadgePill
+                user={{
+                  id: item.userId,
+                  regNumber: item.userRegNumber,
+                  name: item.userName,
+                  branch: item.userBranch,
+                  year: item.userYear,
+                  phone: item.userPhone,
+                }}
+                items={allItems}
+                size="sm"
+                showKarma
+              />
+              <span className="bg-white border border-orange-200 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold">
+                ID: {item.userRegNumber}
+              </span>
+            </div>
           </div>
 
           {/* Privacy Phone Notice or Revealed Contact */}
@@ -240,14 +260,27 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
 
         {/* Interactive Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-orange-100">
-          {/* Report Fake Link */}
-          <button
-            onClick={() => onOpenReportSuspiciousModal(item)}
-            className="text-xs text-rose-600 hover:text-rose-700 flex items-center space-x-1 hover:underline font-bold"
-          >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Report Suspicious / Fake Listing</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            {/* Report Fake Link */}
+            <button
+              onClick={() => onOpenReportSuspiciousModal(item)}
+              className="text-xs text-rose-600 hover:text-rose-700 flex items-center space-x-1 hover:underline font-bold"
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Report Suspicious</span>
+            </button>
+
+            {/* QR Code / Printable Poster Button */}
+            {onOpenQRCode && (
+              <button
+                onClick={() => onOpenQRCode(item)}
+                className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-900 border border-orange-300 font-black text-xs rounded-xl flex items-center space-x-1.5 shadow-sm transition-all"
+              >
+                <QrCode className="w-4 h-4 text-orange-600" />
+                <span>QR Poster</span>
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center space-x-2">
             <button

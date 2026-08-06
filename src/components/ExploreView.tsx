@@ -16,6 +16,7 @@ import { ItemCard } from './ItemCard';
 interface ExploreViewProps {
   items: Item[];
   onViewDetails: (item: Item) => void;
+  onOpenQRCode?: (item: Item) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   selectedCategory?: CategoryType;
@@ -27,6 +28,7 @@ interface ExploreViewProps {
 export const ExploreView: React.FC<ExploreViewProps> = ({
   items,
   onViewDetails,
+  onOpenQRCode,
   searchQuery,
   setSearchQuery,
   selectedCategory,
@@ -280,7 +282,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             <ItemCard
               key={item.id}
               item={item}
+              allItems={items}
               onViewDetails={onViewDetails}
+              onOpenQRCode={onOpenQRCode}
             />
           ))}
         </div>

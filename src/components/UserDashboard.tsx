@@ -8,9 +8,12 @@ import {
   Phone, 
   Lock, 
   Sparkles,
-  ArrowUpRight
+  ArrowUpRight,
+  QrCode
 } from 'lucide-react';
 import { Item, User, Claim } from '../types';
+import { GoodSamaritanAchievementsCard } from './GoodSamaritanAchievementsCard';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
 
 interface UserDashboardProps {
   currentUser: User;
@@ -20,6 +23,7 @@ interface UserDashboardProps {
   onViewItemDetails: (item: Item) => void;
   onOpenConfirmReceivedModal: (item: Item) => void;
   onDeleteItem: (itemId: string) => void;
+  onOpenQRCode?: (item: Item) => void;
 }
 
 export const UserDashboard: React.FC<UserDashboardProps> = ({
@@ -30,6 +34,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   onViewItemDetails,
   onOpenConfirmReceivedModal,
   onDeleteItem,
+  onOpenQRCode,
 }) => {
   const [activeTab, setActiveTab] = useState<'my-posts' | 'my-claims'>('my-posts');
 
@@ -97,6 +102,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           <div className="text-xs font-bold text-slate-500 mt-0.5 uppercase tracking-wide">Resolved Items</div>
         </div>
       </div>
+
+      {/* Visual Good Samaritan Achievement System Card */}
+      <GoodSamaritanAchievementsCard
+        currentUser={currentUser}
+        items={items}
+        claims={claims}
+        onStatsUpdate={() => {
+          // Force update local view state
+          setActiveTab(activeTab);
+        }}
+      />
 
       {/* Tabs */}
       <div className="flex border-b border-orange-100 mb-6 font-bold text-xs space-x-6">
@@ -177,13 +193,25 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   </div>
 
                   <div className="pt-3 border-t border-orange-100 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => onViewItemDetails(item)}
-                      className="text-xs text-orange-500 hover:text-orange-600 font-black flex items-center space-x-1 uppercase tracking-wide"
-                    >
-                      <span>View Listing</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => onViewItemDetails(item)}
+                        className="text-xs text-orange-500 hover:text-orange-600 font-black flex items-center space-x-1 uppercase tracking-wide"
+                      >
+                        <span>View Listing</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+
+                      {onOpenQRCode && (
+                        <button
+                          onClick={() => onOpenQRCode(item)}
+                          className="px-2.5 py-1 bg-orange-100 hover:bg-orange-200 text-orange-900 border border-orange-200 text-[11px] font-black rounded-lg flex items-center space-x-1"
+                        >
+                          <QrCode className="w-3.5 h-3.5 text-orange-600" />
+                          <span>QR Poster</span>
+                        </button>
+                      )}
+                    </div>
 
                     <div className="flex items-center space-x-2">
                       {item.status === 'Recovered' && (

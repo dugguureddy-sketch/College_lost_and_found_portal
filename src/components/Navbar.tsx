@@ -10,17 +10,23 @@ import {
   LogOut, 
   CheckCircle2, 
   AlertCircle,
-  Users
+  Users,
+  Database,
+  Trophy
 } from 'lucide-react';
-import { User, PlatformStats } from '../types';
+import { User, PlatformStats, Item } from '../types';
+import { GoodSamaritanBadgePill } from './GoodSamaritanBadgePill';
+import { getItems } from '../utils/storage';
 
 interface NavbarProps {
   currentUser: User;
   stats: PlatformStats;
+  items?: Item[];
   activeTab: 'home' | 'explore' | 'smart-match' | 'my-dashboard' | 'admin';
   setActiveTab: (tab: 'home' | 'explore' | 'smart-match' | 'my-dashboard' | 'admin') => void;
   onOpenReportModal: (type: 'Lost' | 'Found') => void;
   onOpenAuthModal: () => void;
+  onOpenSupabaseModal: () => void;
   onLogout: () => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -29,15 +35,18 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   stats,
+  items,
   activeTab,
   setActiveTab,
   onOpenReportModal,
   onOpenAuthModal,
+  onOpenSupabaseModal,
   onLogout,
   searchQuery,
   setSearchQuery,
 }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const currentItems = items || getItems();
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-orange-100 text-slate-800 shadow-sm">
@@ -179,6 +188,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* CTAs & Profile */}
         <div className="flex items-center space-x-2">
+          {/* Supabase DB Badge Button */}
+          <button
+            onClick={onOpenSupabaseModal}
+            className="hidden xl:inline-flex items-center space-x-1.5 px-3 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-black transition-all hover:scale-105 active:scale-95"
+            title="Inspect Supabase Database Connection & SQL Schema"
+          >
+            <Database className="w-3.5 h-3.5 text-emerald-600" />
+            <span>⚡ Supabase</span>
+          </button>
+
           {/* Post Lost Button */}
           <button
             onClick={() => onOpenReportModal('Lost')}
@@ -207,25 +226,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {currentUser.name ? currentUser.name.charAt(0) : 'U'}
               </div>
               <div className="hidden md:block text-left">
-                <div className="text-xs font-black text-slate-800 leading-tight">
-                  {currentUser.name}
+                <div className="text-xs font-black text-slate-800 leading-tight flex items-center space-x-1.5">
+                  <span>{currentUser.name}</span>
                 </div>
-                <div className="text-[10px] text-emerald-600 font-bold leading-tight flex items-center space-x-1">
-                  <span>{currentUser.branch} • {currentUser.year}</span>
-                  {currentUser.role === 'admin' && (
-                    <span className="bg-amber-500 text-white text-[9px] px-1 rounded font-black">ADMIN</span>
-                  )}
+                <div className="text-[10px] text-slate-500 font-bold leading-tight flex items-center space-x-1 mt-0.5">
+                  <GoodSamaritanBadgePill user={currentUser} items={currentItems} size="sm" />
                 </div>
               </div>
             </button>
 
             {/* User Dropdown */}
             {showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border-2 border-orange-100 rounded-2xl shadow-xl py-2 z-50 text-slate-800">
-                <div className="px-3 py-2 border-b border-orange-100">
-                  <p className="text-xs font-black text-slate-800">{currentUser.name}</p>
-                  <p className="text-[11px] text-slate-500 font-medium">{currentUser.regNumber} • {currentUser.branch}</p>
-                  <p className="text-[10px] text-orange-600 font-bold">{currentUser.year}</p>
+              <div className="absolute right-0 mt-2 w-64 bg-white border-2 border-orange-100 rounded-2xl shadow-xl py-2 z-50 text-slate-800">
+                <div className="px-3.5 py-2.5 border-b border-orange-100 space-y-1">
+                  <p className="text-xs font-black text-slate-800 flex items-center justify-between">
+                    <span>{currentUser.name}</span>
+                    {currentUser.role === 'admin' && (
+                      <span className="bg-amber-500 text-white text-[9px] px-1.5 py-0.2 rounded font-black">ADMIN</span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-500 font-medium">{currentUser.regNumber} • {currentUser.branch} ({currentUser.year})</p>
+                  <div className="pt-1">
+                    <GoodSamaritanBadgePill user={currentUser} items={currentItems} size="sm" showKarma />
+                  </div>
                 </div>
 
                 <div className="py-1 text-xs font-bold">
