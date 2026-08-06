@@ -80,6 +80,42 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         </div>
       </div>
 
+      {/* Local Disk Database Privacy Banner */}
+      <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 text-white mb-8 shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h3 className="font-black text-sm tracking-tight text-white flex items-center space-x-1.5">
+                <span>💾 Local Disk Database Active</span>
+                <span className="text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-2 py-0.5 rounded-full font-mono uppercase">
+                  Auto-Clear Engine
+                </span>
+              </h3>
+            </div>
+            <p className="text-xs text-slate-300 font-medium max-w-2xl leading-relaxed">
+              While items are lost or pending, your user data (photograph, regd number <code className="bg-slate-800 text-orange-300 px-1 py-0.5 rounded text-[11px] font-mono">{currentUser.regNumber}</code>, contact phone, and location details) is stored locally on disk. <strong className="text-emerald-400 font-black">When an item is found, all sensitive user data & photos are automatically cleared!</strong>
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-3 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 text-xs font-mono">
+            <div>
+              <span className="text-[10px] text-slate-400 block uppercase font-bold">Active in Local DB</span>
+              <span className="text-base font-black text-amber-400">
+                {myPosts.filter(i => i.status !== 'Found').length} items
+              </span>
+            </div>
+            <div className="h-6 w-px bg-slate-700" />
+            <div>
+              <span className="text-[10px] text-slate-400 block uppercase font-bold">Auto-Purged</span>
+              <span className="text-base font-black text-emerald-400">
+                {myPosts.filter(i => i.status === 'Found').length} items
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Personal Statistics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-2xl border border-orange-100 text-center shadow-sm">

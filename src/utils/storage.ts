@@ -27,6 +27,58 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'campus_lost_found_current_user_v2',
 };
 
+// Auto-purge user data from local disk storage for items that are marked as Found
+export const autoPurgeFoundItemsFromLocalDB = (): void => {
+  try {
+    const rawItems = localStorage.getItem(STORAGE_KEYS.ITEMS);
+    if (!rawItems) return;
+    const items: Item[] = JSON.parse(rawItems);
+    let modified = false;
+
+    const cleanedItems = items.map((item) => {
+      if (item.status === 'Found') {
+        // If data hasn't been cleaned yet for found items, purge user details from local disk database
+        if (
+          item.imageUrl !== undefined ||
+          item.userRegNumber !== '[CLEANED - ITEM FOUND]' ||
+          item.userPhone !== '[CLEANED - ITEM FOUND]' ||
+          item.finderPhone !== '[CLEANED - ITEM FOUND]' ||
+          item.identifyingDetails !== '[CLEANED FOR PRIVACY]'
+        ) {
+          modified = true;
+          return {
+            ...item,
+            imageUrl: undefined,
+            userRegNumber: '[CLEANED - ITEM FOUND]',
+            userPhone: '[CLEANED - ITEM FOUND]',
+            finderPhone: '[CLEANED - ITEM FOUND]',
+            finderNote: '[CLEANED - CASE CLOSED]',
+            identifyingDetails: '[CLEANED FOR PRIVACY]',
+          };
+        }
+      }
+      return item;
+    });
+
+    if (modified) {
+      localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(cleanedItems));
+
+      // Also clean claims for resolved items
+      const foundItemIds = cleanedItems.filter((i) => i.status === 'Found').map((i) => i.id);
+      const rawClaims = localStorage.getItem(STORAGE_KEYS.CLAIMS);
+      if (rawClaims) {
+        const claims: Claim[] = JSON.parse(rawClaims);
+        const filteredClaims = claims.filter((c) => !foundItemIds.includes(c.itemId));
+        if (filteredClaims.length !== claims.length) {
+          localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(filteredClaims));
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error during autoPurgeFoundItemsFromLocalDB:', err);
+  }
+};
+
 // Initialize default storage & sync with Supabase
 export const initializeStorage = (): void => {
   if (!localStorage.getItem(STORAGE_KEYS.ITEMS)) {
@@ -47,6 +99,9 @@ export const initializeStorage = (): void => {
   if (!localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) {
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(SAMPLE_USERS[0]));
   }
+
+  // Run auto-purge on launch to ensure resolved items have user data cleared from local disk
+  autoPurgeFoundItemsFromLocalDB();
 
   // Asynchronously seed/sync Supabase
   seedSupabaseIfEmpty().then(() => {
@@ -234,13 +289,20 @@ export const markItemReceivedAndCleanup = (itemId: string): Item | null => {
   const item = items[itemIndex];
   item.status = 'Found';
 
-  // PRIVACY AUTO-CLEANUP: Wipe temporary identifiers and phone numbers
-  item.userPhone = '[CLEANED - Case Resolved]';
-  item.finderPhone = '[CLEANED - Case Resolved]';
-  item.finderNote = '[CLEANED - Case Resolved]';
+  // PRIVACY AUTO-CLEANUP: Wipe temporary identifiers, regd number, phone numbers, and photos from local disk database on item recovery
+  item.imageUrl = undefined;
+  item.userRegNumber = '[CLEANED - ITEM FOUND]';
+  item.userPhone = '[CLEANED - ITEM FOUND]';
+  item.finderPhone = '[CLEANED - ITEM FOUND]';
+  item.finderNote = '[CLEANED - CASE CLOSED]';
   item.identifyingDetails = '[CLEANED FOR PRIVACY]';
 
   localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+
+  // Auto-clear claims associated with this item from local disk database
+  const claims = getClaims();
+  const updatedClaims = claims.filter(c => c.itemId !== itemId);
+  localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(updatedClaims));
 
   const stats = getStats();
   stats.totalFoundItems += 1;

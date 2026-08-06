@@ -101,16 +101,32 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
           {item.title}
         </h2>
 
-        {/* Image Preview */}
+        {/* Image Preview or Local Storage Auto-Purged State */}
         <div className="w-full h-64 bg-slate-100 rounded-2xl overflow-hidden mb-5 border border-orange-100 relative">
-          <img
-            src={item.imageUrl || 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&q=80&w=800'}
-            alt={item.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&q=80&w=800';
-            }}
-          />
+          {item.status === 'Found' ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-50/80 text-emerald-900 p-6 text-center">
+              <ShieldCheck className="w-12 h-12 text-emerald-600 mb-2" />
+              <h4 className="text-sm font-black uppercase tracking-wide mb-1">Local Storage Privacy Cleared</h4>
+              <p className="text-xs text-emerald-800 font-medium max-w-sm">
+                This case is resolved! To protect user privacy, the item photograph, registration number (250301120030), and contact phone number were automatically erased from local disk database.
+              </p>
+            </div>
+          ) : item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&q=80&w=800';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-orange-50/50 text-slate-400 font-medium">
+              <Tag className="w-10 h-10 mb-2 text-orange-300" />
+              <span className="text-xs font-bold text-slate-500">No Photograph Uploaded</span>
+              <span className="text-[10px] text-slate-400 font-medium mt-0.5">Stored in Local Disk Database</span>
+            </div>
+          )}
         </div>
 
         {/* SMART MATCH ALERT BOX */}
