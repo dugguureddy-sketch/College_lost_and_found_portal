@@ -80,6 +80,45 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         </div>
       </div>
 
+      {/* Platform Founders Card */}
+      <div className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 rounded-3xl p-5 text-white mb-8 shadow-md border-2 border-amber-300">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-amber-400/40 pb-3 mb-3">
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">👑</span>
+            <h2 className="font-black text-base uppercase tracking-wider text-white">PLATFORM FOUNDERS</h2>
+          </div>
+          <span className="bg-black/20 text-white text-xs font-black px-3 py-1 rounded-full border border-amber-300 uppercase">
+            FOUNDERS AUTHORIZED
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-black/20 p-3.5 rounded-2xl border border-white/20">
+            <p className="text-xs text-amber-200 font-bold uppercase tracking-wider">Founder 1</p>
+            <p className="text-base font-black text-white mt-0.5">Amrit Rout</p>
+            <p className="text-xs font-mono font-black text-amber-200 bg-black/40 px-2 py-0.5 rounded-md inline-block mt-1">
+              250301120030
+            </p>
+          </div>
+
+          <div className="bg-black/20 p-3.5 rounded-2xl border border-white/20">
+            <p className="text-xs text-amber-200 font-bold uppercase tracking-wider">Founder 2</p>
+            <p className="text-base font-black text-white mt-0.5">Atirajam Giridhar</p>
+            <p className="text-xs font-mono font-black text-amber-200 bg-black/40 px-2 py-0.5 rounded-md inline-block mt-1">
+              250301120010
+            </p>
+          </div>
+
+          <div className="bg-black/20 p-3.5 rounded-2xl border border-white/20">
+            <p className="text-xs text-amber-200 font-bold uppercase tracking-wider">Founder 3</p>
+            <p className="text-base font-black text-white mt-0.5">Arindam Mohanty</p>
+            <p className="text-xs font-mono font-black text-amber-200 bg-black/40 px-2 py-0.5 rounded-md inline-block mt-1">
+              250301120059
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Local Disk Database Privacy Banner */}
       <div className="bg-slate-900 border-2 border-slate-800 rounded-3xl p-5 text-white mb-8 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-4">

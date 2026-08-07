@@ -41,6 +41,9 @@ interface AdminDashboardProps {
   onResetData: () => void;
   onViewItemDetails: (item: Item) => void;
   onOpenQRCode?: (item: Item) => void;
+  onDeleteUser?: (userId: string) => void;
+  onUpdateItemDetails?: (itemId: string, updates: Partial<Item>) => void;
+  onPurgeItemPrivacyData?: (itemId: string) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -59,20 +62,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onResetData,
   onViewItemDetails,
   onOpenQRCode,
+  onDeleteUser,
+  onUpdateItemDetails,
+  onPurgeItemPrivacyData,
 }) => {
   const [activeTab, setActiveTab] = useState<'listings' | 'users' | 'reports' | 'claims' | 'analytics'>('listings');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
 
   // Bulk Selection state
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   const filteredItems = items.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.userRegNumber.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.userRegNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'Pending') return item.status === 'Pending';
+    if (statusFilter === 'Recovered') return item.status === 'Recovered';
+    if (statusFilter === 'Found') return item.status === 'Found';
+    if (statusFilter === 'Pending_LongTime') {
+      if (item.status !== 'Pending') return false;
+      const createdDate = new Date(item.createdAt || item.date);
+      const diffDays = (Date.now() - createdDate.getTime()) / (1000 * 3600 * 24);
+      return diffDays >= 7;
+    }
+
+    return true;
   });
 
   const pendingReports = reports.filter(r => r.status === 'Pending Review');
@@ -349,7 +370,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
 
               <div className="flex items-center space-x-1.5">
-                <span className="text-slate-500">Status:</span>
+                <span className="text-slate-500 font-black">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -357,8 +378,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                   <option value="All">All Statuses</option>
                   <option value="Pending">🟡 Pending</option>
+                  <option value="Pending_LongTime">⏳ Long-Time Pending (&gt;7 Days)</option>
                   <option value="Recovered">🟠 Recovered</option>
-                  <option value="Found">🟢 Found</option>
+                  <option value="Found">🟢 Found (Cleaned)</option>
                 </select>
               </div>
             </div>
@@ -432,6 +454,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
                         <td className="p-3.5 text-slate-500">{item.date}</td>
                         <td className="p-3.5 text-right space-x-1.5">
+                          <button
+                            onClick={() => setEditingItem(item)}
+                            className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-black"
+                            title="Edit Notice Details"
+                          >
+                            ✏️ Edit
+                          </button>
+                          {onPurgeItemPrivacyData && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Purge user details and photograph for "${item.title}"?`)) {
+                                  onPurgeItemPrivacyData(item.id);
+                                }
+                              }}
+                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-black"
+                              title="Purge Sensitive User Data"
+                            >
+                              🔒 Purge
+                            </button>
+                          )}
                           {onOpenQRCode && (
                             <button
                               onClick={() => onOpenQRCode(item)}
@@ -455,6 +497,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               }
                             }}
                             className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-[11px] font-black transition-colors"
+                            title="Delete Notice"
                           >
                             <Trash2 className="w-3.5 h-3.5 inline" />
                           </button>
@@ -565,6 +608,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <th className="p-3.5">Branch & Year</th>
                 <th className="p-3.5">Phone</th>
                 <th className="p-3.5">Role</th>
+                <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-orange-100 font-medium">
@@ -584,10 +628,111 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       {u.role.toUpperCase()}
                     </span>
                   </td>
+                  <td className="p-3.5 text-right">
+                    {onDeleteUser && u.role !== 'admin' && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Permanently delete user profile and data for "${u.name}" (${u.regNumber})?`)) {
+                            onDeleteUser(u.id);
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-[11px] font-black transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 inline mr-1" />
+                        <span>Delete User</span>
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* EDIT LISTING MODAL */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl border-2 border-orange-200 max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-800">
+            <div className="flex items-center justify-between border-b border-orange-100 pb-3">
+              <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">
+                <span>✏️ Edit Notice Details</span>
+              </h3>
+              <button
+                onClick={() => setEditingItem(null)}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs font-bold">
+              <div>
+                <label className="block text-slate-700 mb-1">Item Title / Name</label>
+                <input
+                  type="text"
+                  value={editingItem.title}
+                  onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-2.5 font-bold focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={editingItem.description}
+                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-2.5 font-bold focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1">Location</label>
+                  <input
+                    type="text"
+                    value={editingItem.location}
+                    onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
+                    className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-2.5 font-bold focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1">Status</label>
+                  <select
+                    value={editingItem.status}
+                    onChange={(e) => setEditingItem({ ...editingItem, status: e.target.value as Item['status'] })}
+                    className="w-full bg-orange-50/50 border border-orange-200 rounded-xl p-2.5 font-bold focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="Pending">🟡 Pending</option>
+                    <option value="Recovered">🟠 Recovered</option>
+                    <option value="Found">🟢 Found</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-orange-100">
+              <button
+                onClick={() => setEditingItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (onUpdateItemDetails && editingItem) {
+                    onUpdateItemDetails(editingItem.id, editingItem);
+                    setEditingItem(null);
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-md"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

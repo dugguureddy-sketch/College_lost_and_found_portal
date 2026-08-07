@@ -33,54 +33,25 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
   const [isClosed, setIsClosed] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Notifications Queue
-  const [notifications, setNotifications] = useState<DemoNotification[]>([
-    {
-      id: 'demo-1',
-      type: 'Found',
-      title: 'Titan Steel Watch',
-      category: 'Accessories',
-      location: 'Central Library, Table 12',
-      time: 'Just now',
-    },
-    {
-      id: 'demo-2',
-      type: 'Lost',
-      title: 'Blue Campus Backpack',
-      category: 'Bags & Pouches',
-      location: 'Academic Block 2, Room 304',
-      time: '2 mins ago',
-    },
-    {
-      id: 'demo-3',
-      type: 'Found',
-      title: 'Apple AirPods Pro',
-      category: 'Electronics',
-      location: 'Student Cafeteria, Counter B',
-      time: '5 mins ago',
-    },
-  ]);
-
+  // Notifications Queue (Synced strictly with real reported items)
+  const [notifications, setNotifications] = useState<DemoNotification[]>([]);
   const [currentNotificationIndex, setCurrentNotificationIndex] = useState(0);
 
-  // Sync with real newly added items if available
+  // Sync with real reported items only
   useEffect(() => {
     if (items && items.length > 0) {
-      const latestItem = items[0];
-      const exists = notifications.some((n) => n.id === latestItem.id);
-      if (!exists) {
-        const newNotif: DemoNotification = {
-          id: latestItem.id,
-          type: latestItem.type,
-          title: latestItem.title,
-          category: latestItem.category,
-          location: latestItem.location,
-          time: 'Just now',
-          item: latestItem,
-        };
-        setNotifications((prev) => [newNotif, ...prev]);
-        setCurrentNotificationIndex(0);
-      }
+      const realNotifs: DemoNotification[] = items.slice(0, 10).map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        category: item.category,
+        location: item.location,
+        time: item.date ? `${item.date} ${item.time || ''}` : 'Recently',
+        item: item,
+      }));
+      setNotifications(realNotifs);
+    } else {
+      setNotifications([]);
     }
   }, [items]);
 
@@ -146,30 +117,11 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
     };
   }, [isDragging]);
 
-  // Simulate Triggering New Demo Alerts
-  const triggerDemoNotification = (type: ItemType) => {
-    const locations = ['Central Library', 'Main Cafeteria', 'Auditorium Hall', 'Hostel Block A', 'Sports Complex', 'CSE Lab 302'];
-    const lostTitles = ['Boat Rockerz Headphones', 'Scientific Calculator FX-991', 'Engineering Drawing Board', 'Black Leather Wallet', 'Hostel Room Key 204'];
-    const foundTitles = ['Apple AirPods Pro Case', 'Silver HP Laptop Charger', 'College ID Card', 'Noise ColorFit Smartwatch', 'Metal Water Bottle'];
-
-    const randomLoc = locations[Math.floor(Math.random() * locations.length)];
-    const randomTitle = type === 'Lost' 
-      ? lostTitles[Math.floor(Math.random() * lostTitles.length)]
-      : foundTitles[Math.floor(Math.random() * foundTitles.length)];
-
-    const newNotif: DemoNotification = {
-      id: `demo-${Date.now()}`,
-      type,
-      title: randomTitle,
-      category: type === 'Lost' ? 'Personal Belongings' : 'Electronics',
-      location: randomLoc,
-      time: 'Just now',
-    };
-
-    setNotifications((prev) => [newNotif, ...prev]);
-    setCurrentNotificationIndex(0);
-    setIsMinimized(false);
-    setIsClosed(false);
+  // Open real report modal
+  const handleOpenReport = (type: ItemType) => {
+    if (onOpenReportModal) {
+      onOpenReportModal(type);
+    }
   };
 
   if (isClosed) {
@@ -250,7 +202,7 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
       {!isMinimized && (
         <div className="p-4 space-y-3.5 bg-gradient-to-b from-slate-50/50 to-white rounded-b-3xl">
           {/* Active Notification Card */}
-          {activeNotif && (
+          {activeNotif ? (
             <div
               className={`p-3.5 rounded-2xl border-2 text-xs relative overflow-hidden transition-all shadow-sm ${
                 activeNotif.type === 'Found'
@@ -316,6 +268,11 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
                 </button>
               )}
             </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200 text-center space-y-1">
+              <p className="text-xs font-black text-slate-800">No Active Listings</p>
+              <p className="text-[11px] text-slate-500 font-medium">Use the buttons below to report a lost or found item!</p>
+            </div>
           )}
 
           {/* Controls & Demo Actions */}
@@ -358,13 +315,10 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
               )}
             </div>
 
-            {/* Quick Demo Trigger Buttons */}
+            {/* Quick Report Buttons */}
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => {
-                  triggerDemoNotification('Found');
-                  if (onOpenReportModal) onOpenReportModal('Found');
-                }}
+                onClick={() => handleOpenReport('Found')}
                 className="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-[11px] rounded-xl shadow-md hover:shadow-lg flex items-center justify-center space-x-1.5 transition-all active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
@@ -372,10 +326,7 @@ export const MovableNotification: React.FC<MovableNotificationProps> = ({
               </button>
 
               <button
-                onClick={() => {
-                  triggerDemoNotification('Lost');
-                  if (onOpenReportModal) onOpenReportModal('Lost');
-                }}
+                onClick={() => handleOpenReport('Lost')}
                 className="px-3 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-black text-[11px] rounded-xl shadow-md hover:shadow-lg flex items-center justify-center space-x-1.5 transition-all active:scale-95"
               >
                 <PlusCircle className="w-3.5 h-3.5" />

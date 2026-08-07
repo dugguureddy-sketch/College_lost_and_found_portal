@@ -91,10 +91,10 @@ CREATE TABLE IF NOT EXISTS public.reports (
 -- 5. Create Stats Table
 CREATE TABLE IF NOT EXISTS public.stats (
   id TEXT PRIMARY KEY DEFAULT 'global',
-  total_users INTEGER DEFAULT 156,
-  total_lost_items INTEGER DEFAULT 43,
-  total_found_items INTEGER DEFAULT 31,
-  active_cases_count INTEGER DEFAULT 12,
+  total_users INTEGER DEFAULT 0,
+  total_lost_items INTEGER DEFAULT 0,
+  total_found_items INTEGER DEFAULT 0,
+  active_cases_count INTEGER DEFAULT 0,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

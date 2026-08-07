@@ -19,12 +19,12 @@ import {
 } from '../lib/supabase';
 
 const STORAGE_KEYS = {
-  ITEMS: 'campus_lost_found_items_v2',
-  USERS: 'campus_lost_found_users_v2',
-  STATS: 'campus_lost_found_stats_v2',
-  CLAIMS: 'campus_lost_found_claims_v2',
-  REPORTS: 'campus_lost_found_reports_v2',
-  CURRENT_USER: 'campus_lost_found_current_user_v2',
+  ITEMS: 'campus_lost_found_items_v4',
+  USERS: 'campus_lost_found_users_v4',
+  STATS: 'campus_lost_found_stats_v4',
+  CLAIMS: 'campus_lost_found_claims_v4',
+  REPORTS: 'campus_lost_found_reports_v4',
+  CURRENT_USER: 'campus_lost_found_current_user_v4',
 };
 
 // Auto-purge user data from local disk storage for items that are marked as Found
@@ -82,10 +82,10 @@ export const autoPurgeFoundItemsFromLocalDB = (): void => {
 // Initialize default storage & sync with Supabase
 export const initializeStorage = (): void => {
   if (!localStorage.getItem(STORAGE_KEYS.ITEMS)) {
-    localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
+    localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify([]));
   }
   if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(SAMPLE_USERS));
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([]));
   }
   if (!localStorage.getItem(STORAGE_KEYS.STATS)) {
     localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(INITIAL_STATS));
@@ -156,27 +156,24 @@ export const getItems = (): Item[] => {
 export const getUsers = (): User[] => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.USERS);
-    return data ? JSON.parse(data) : SAMPLE_USERS;
+    return data ? JSON.parse(data) : [];
   } catch {
-    return SAMPLE_USERS;
+    return [];
   }
 };
 
 export const getStats = (): PlatformStats => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.STATS);
-    if (!data) return INITIAL_STATS;
-    const parsed: PlatformStats = JSON.parse(data);
-    
     const items = getItems();
     const users = getUsers();
-    const foundCountFromItems = items.filter(i => i.status === 'Found').length;
+    const foundCountFromItems = items.filter(i => i.status === 'Found' || i.status === 'Recovered').length;
+    const lostCountFromItems = items.filter(i => i.type === 'Lost' && i.status === 'Pending').length;
     
     return {
-      totalUsers: Math.max(parsed.totalUsers || 0, users.length),
-      totalLostItems: Math.max(parsed.totalLostItems || 0, items.filter(i => i.type === 'Lost').length),
-      totalFoundItems: Math.max(parsed.totalFoundItems || 0, foundCountFromItems),
-      activeCasesCount: items.filter(i => i.status !== 'Found').length,
+      totalUsers: users.length,
+      totalLostItems: items.filter(i => i.type === 'Lost').length,
+      totalFoundItems: foundCountFromItems,
+      activeCasesCount: items.filter(i => i.status === 'Pending').length,
     };
   } catch {
     return INITIAL_STATS;
@@ -472,9 +469,43 @@ export const updateMultipleItemStatuses = (itemIds: string[], targetStatus: Item
   }
 };
 
+export const deleteUser = (userId: string): void => {
+  const users = getUsers();
+  const updatedUsers = users.filter(u => u.id !== userId);
+  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
+};
+
+export const updateItemDetails = (itemId: string, updates: Partial<Item>): Item | null => {
+  const items = getItems();
+  const idx = items.findIndex(i => i.id === itemId);
+  if (idx === -1) return null;
+
+  items[idx] = { ...items[idx], ...updates };
+  localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+  updateSupabaseItem(items[idx]);
+  return items[idx];
+};
+
+export const purgeItemPrivacyData = (itemId: string): Item | null => {
+  const items = getItems();
+  const idx = items.findIndex(i => i.id === itemId);
+  if (idx === -1) return null;
+
+  items[idx].imageUrl = undefined;
+  items[idx].userRegNumber = '[CLEANED BY ADMIN]';
+  items[idx].userPhone = '[CLEANED BY ADMIN]';
+  items[idx].finderPhone = '[CLEANED BY ADMIN]';
+  items[idx].finderNote = '[CLEANED BY ADMIN]';
+  items[idx].identifyingDetails = '[CLEANED FOR PRIVACY BY ADMIN]';
+
+  localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(items));
+  updateSupabaseItem(items[idx]);
+  return items[idx];
+};
+
 export const resetDataToSeed = (): void => {
-  localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(INITIAL_ITEMS));
-  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(SAMPLE_USERS));
+  localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify([]));
   localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(INITIAL_STATS));
   localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify([]));
   localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));

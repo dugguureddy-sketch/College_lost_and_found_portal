@@ -217,6 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Top Right Owner & User Profile Corner */}
+          {/* Current User Profile Corner & Founders Card */}
           <div className="relative">
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -234,30 +235,58 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center space-x-1.5">
                   <span className="text-xs font-black text-slate-900">Amrit Rout</span>
                   
-                  {/* Glowing popping OWNER Badge - Crystal Clear & Non-Blurring */}
+                  {/* Founders Badge - Crystal Clear & Non-Blurring */}
                   <span className="relative inline-flex items-center space-x-1 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-200 shadow-sm">
                     <span className="animate-ping absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-300 rounded-full opacity-75" />
                     <span>👑</span>
-                    <span className="tracking-wider">OWNER</span>
+                    <span className="tracking-wider uppercase font-black">FOUNDERS</span>
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-600 font-extrabold mt-0.5 tracking-tight font-mono">
+                <div className="text-[10px] text-slate-900 font-black mt-0.5 tracking-tight font-mono">
                   250301120030 • CSE 2nd Year
                 </div>
               </div>
             </button>
 
-            {/* User Dropdown */}
+            {/* User & Founders Dropdown */}
             {showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-72 bg-white border-2 border-orange-200 rounded-2xl shadow-xl py-2 z-50 text-slate-800 animate-slide-up">
-                <div className="px-3.5 py-2.5 border-b border-orange-100 space-y-1 bg-gradient-to-br from-orange-50/80 to-amber-50/40 rounded-t-2xl">
+              <div className="absolute right-0 mt-2 w-80 bg-white border-2 border-orange-200 rounded-2xl shadow-xl py-2 z-50 text-slate-900 animate-slide-up">
+                {/* Founders Header Section */}
+                <div className="px-3.5 py-3 border-b-2 border-orange-100 space-y-2 bg-gradient-to-br from-orange-50/90 via-amber-50/60 to-orange-50/90 rounded-t-2xl">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-black text-slate-900">Amrit Rout</p>
-                    <span className="bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm border border-amber-200">
-                      👑 OWNER
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center space-x-1">
+                      <span>👑</span>
+                      <span className="font-black text-orange-950">PLATFORM FOUNDERS</span>
+                    </span>
+                    <span className="bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[10px] px-2.5 py-0.5 rounded-full font-black shadow-sm border border-amber-200 uppercase">
+                      FOUNDERS
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-700 font-mono font-bold">250301120030 • CSE (2nd Year)</p>
+
+                  {/* Explicit Founders List in Bold Fonts as Requested */}
+                  <div className="space-y-1.5 text-xs pt-1">
+                    <div className="flex items-center justify-between font-black bg-white/90 p-2 rounded-xl border border-orange-200 shadow-2xs">
+                      <span className="text-slate-950 font-black text-xs">Amrit Rout</span>
+                      <span className="font-mono font-black text-orange-950 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300 text-[11px]">
+                        250301120030
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between font-black bg-white/90 p-2 rounded-xl border border-orange-200 shadow-2xs">
+                      <span className="text-slate-950 font-black text-xs">Atirajam Giridhar</span>
+                      <span className="font-mono font-black text-orange-950 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300 text-[11px]">
+                        250301120010
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between font-black bg-white/90 p-2 rounded-xl border border-orange-200 shadow-2xs">
+                      <span className="text-slate-950 font-black text-xs">Arindam Mohanty</span>
+                      <span className="font-mono font-black text-orange-950 bg-orange-100 px-2 py-0.5 rounded-lg border border-orange-300 text-[11px]">
+                        250301120059
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="pt-1">
                     <GoodSamaritanBadgePill user={{ ...currentUser, name: 'Amrit Rout', regNumber: '250301120030', branch: 'CSE', year: '2nd Year' }} items={currentItems} size="sm" showKarma />
                   </div>

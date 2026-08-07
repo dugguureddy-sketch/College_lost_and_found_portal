@@ -31,7 +31,10 @@ import {
   updateClaimStatus,
   addReport,
   resolveReport,
-  resetDataToSeed
+  resetDataToSeed,
+  deleteUser,
+  updateItemDetails,
+  purgeItemPrivacyData
 } from './utils/storage';
 
 import { Navbar } from './components/Navbar';
@@ -239,6 +242,24 @@ export default function App() {
     resetDataToSeed();
     refreshAllStates();
     showToast('Demo data reset to initial seed state.');
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUser(userId);
+    refreshAllStates();
+    showToast('🗑️ User profile and user data deleted permanently.');
+  };
+
+  const handleUpdateItemDetails = (itemId: string, updates: Partial<Item>) => {
+    updateItemDetails(itemId, updates);
+    refreshAllStates();
+    showToast('✏️ Listing details updated successfully.');
+  };
+
+  const handlePurgeItemPrivacyData = (itemId: string) => {
+    purgeItemPrivacyData(itemId);
+    refreshAllStates();
+    showToast('🔒 Sensitive user details purged from listing.');
   };
 
   // Recent Lost & Found lists for Home Page
@@ -481,6 +502,9 @@ export default function App() {
             onResetData={handleResetData}
             onViewItemDetails={(i) => setActiveItemForDetails(i)}
             onOpenQRCode={(i) => setActiveItemForQRCode(i)}
+            onDeleteUser={handleDeleteUser}
+            onUpdateItemDetails={handleUpdateItemDetails}
+            onPurgeItemPrivacyData={handlePurgeItemPrivacyData}
           />
         )}
       </main>
