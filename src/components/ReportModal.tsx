@@ -107,63 +107,65 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white border border-orange-100 rounded-3xl max-w-2xl w-full my-8 p-6 shadow-2xl relative text-slate-800">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full bg-slate-100"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Header & Lost vs Found Toggle */}
-        <div className="mb-6">
-          <h2 className="text-xl font-black text-slate-900 mb-1">
-            {type === 'Lost' ? '🔴 Report a Lost Item' : '🟢 Report a Found Item'}
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Post an item report to notify students and enable smart matching across campus.
-          </p>
-
-          {/* Toggle Pills */}
-          <div className="grid grid-cols-2 gap-2 mt-4 bg-orange-50/80 p-1 rounded-2xl border border-orange-200">
-            <button
-              type="button"
-              onClick={() => setType('Lost')}
-              className={`py-2 rounded-xl text-xs font-black transition-all ${
-                type === 'Lost'
-                  ? 'bg-rose-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              🔴 I LOST SOMETHING
-            </button>
-            <button
-              type="button"
-              onClick={() => setType('Found')}
-              className={`py-2 rounded-xl text-xs font-black transition-all ${
-                type === 'Found'
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              🟢 I FOUND SOMETHING
-            </button>
+    <div className="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+      <div className="bg-white border-2 border-orange-200 rounded-3xl max-w-2xl w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col shadow-2xl relative text-slate-800 my-auto">
+        {/* Sticky Header */}
+        <div className="px-5 py-3.5 border-b border-orange-100 flex items-center justify-between shrink-0 bg-white rounded-t-3xl relative z-10">
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
+              {type === 'Lost' ? '🔴 Report a Lost Item' : '🟢 Report a Found Item'}
+            </h2>
+            <p className="text-xs text-slate-500 font-semibold leading-relaxed mt-0.5">
+              Post an item report to notify students and enable smart matching across campus.
+            </p>
           </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shrink-0 ml-3"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Privacy Notice Banner */}
-        {type === 'Found' && (
-          <div className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2">
-            <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <strong className="text-amber-900 font-bold">Privacy Safeguard:</strong> Never post full sensitive details like full ID Card numbers publicly. Keep some identifying features in secret notes for claim verification!
+        {/* Form wrapping body and sticky footer */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          {/* Scrollable Body */}
+          <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+            {/* Toggle Pills */}
+            <div className="grid grid-cols-2 gap-2 bg-orange-50/80 p-1 rounded-2xl border border-orange-200">
+              <button
+                type="button"
+                onClick={() => setType('Lost')}
+                className={`py-2 rounded-xl text-xs font-black transition-all ${
+                  type === 'Lost'
+                    ? 'bg-rose-500 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🔴 I LOST SOMETHING
+              </button>
+              <button
+                type="button"
+                onClick={() => setType('Found')}
+                className={`py-2 rounded-xl text-xs font-black transition-all ${
+                  type === 'Found'
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                🟢 I FOUND SOMETHING
+              </button>
             </div>
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {/* Privacy Notice Banner */}
+            {type === 'Found' && (
+              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start space-x-2">
+                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-amber-900 font-bold">Privacy Safeguard:</strong> Never post full sensitive details like full ID Card numbers publicly. Keep some identifying features in secret notes for claim verification!
+                </div>
+              </div>
+            )}
           {/* Item Name & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -216,13 +218,13 @@ export const ReportModal: React.FC<ReportModalProps> = ({
           {/* Location & Room Details */}
           <div className="space-y-3">
             {/* Mobile & Desktop Location Selection Mode Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="block font-black text-slate-700 uppercase text-[10px] tracking-wide">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-orange-100/60 pb-1">
+              <label className="block font-black text-slate-800 uppercase text-[10px] tracking-wider">
                 Campus Location <span className="text-rose-500">*</span>
               </label>
 
               {/* Quick Mode Toggle for Mobile & Phone Users */}
-              <div className="flex items-center space-x-1 bg-orange-100/90 p-1 rounded-xl text-[11px] font-bold">
+              <div className="flex items-center space-x-1 bg-orange-100/80 p-0.5 rounded-xl text-[11px] font-bold shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -232,7 +234,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                   }}
                   className={`px-2.5 py-1 rounded-lg transition-all ${
                     location !== 'Custom Location' && location !== 'Other Campus Area'
-                      ? 'bg-white text-orange-950 shadow-sm font-black'
+                      ? 'bg-white text-orange-950 shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -245,7 +247,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                   }}
                   className={`px-2.5 py-1 rounded-lg transition-all ${
                     location === 'Custom Location' || location === 'Other Campus Area'
-                      ? 'bg-orange-600 text-white shadow-sm font-black'
+                      ? 'bg-orange-600 text-white shadow-xs font-black'
                       : 'text-slate-700 hover:text-slate-950 font-extrabold'
                   }`}
                 >
@@ -254,8 +256,8 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="min-w-0">
                 <select
                   value={location}
                   onChange={(e) => setLocation(e.target.value as LocationType)}
@@ -269,7 +271,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
                 </select>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <input
                   type="text"
                   value={roomDetails}
@@ -431,9 +433,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               <span>{error}</span>
             </div>
           )}
+          </div> {/* End Scrollable Body */}
 
-          {/* Submit CTA */}
-          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-orange-100">
+          {/* Sticky Footer */}
+          <div className="px-5 py-3.5 border-t border-orange-100 flex items-center justify-end space-x-3 shrink-0 bg-slate-50/90 rounded-b-3xl">
             <button
               type="button"
               onClick={onClose}

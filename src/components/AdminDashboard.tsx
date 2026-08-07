@@ -652,7 +652,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* EDIT LISTING MODAL */}
       {editingItem && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl border-2 border-orange-200 max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-800">
             <div className="flex items-center justify-between border-b border-orange-100 pb-3">
               <h3 className="text-base font-black text-slate-900 flex items-center space-x-2">

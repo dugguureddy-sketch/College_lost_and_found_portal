@@ -34,7 +34,7 @@ export const HeroStats: React.FC<HeroStatsProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* VIBRANT PALETTE HERO BANNER (Emerald Box with decorative circles) */}
-        <div className="bg-emerald-500 rounded-[2.5rem] p-8 sm:p-12 shadow-xl relative overflow-hidden text-white mb-8">
+        <div className="bg-emerald-500 rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 lg:p-12 shadow-xl relative overflow-hidden text-white mb-8">
           {/* Decorative Background Accents */}
           <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-emerald-400/20 pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 w-80 h-80 rounded-full bg-emerald-600/30 pointer-events-none" />

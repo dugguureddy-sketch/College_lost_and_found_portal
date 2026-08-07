@@ -54,52 +54,55 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
   const isOwner = currentUser.id === item.userId || currentUser.regNumber === item.userRegNumber;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white border border-orange-100 rounded-3xl max-w-2xl w-full my-8 p-6 shadow-2xl relative text-slate-800 overflow-hidden">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full bg-slate-100 z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Top Badges Header */}
-        <div className="flex flex-wrap items-center gap-2 mb-4 pr-10">
-          <span className={`px-3 py-1 rounded-full text-xs font-black shadow-sm ${
-            item.type === 'Lost'
-              ? 'bg-rose-500 text-white'
-              : 'bg-emerald-500 text-white'
-          }`}>
-            {item.type === 'Lost' ? '🔴 LOST ITEM REPORT' : '🟢 FOUND ITEM REPORT'}
-          </span>
-
-          {item.status === 'Pending' && (
-            <span className="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span>🟡 STATUS: PENDING</span>
+    <div className="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+      <div className="bg-white border-2 border-orange-200 rounded-3xl max-w-2xl w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col shadow-2xl relative text-slate-800 my-auto">
+        {/* Sticky Header */}
+        <div className="px-5 py-3.5 border-b border-orange-100 flex items-center justify-between shrink-0 bg-white rounded-t-3xl relative z-10">
+          <div className="flex flex-wrap items-center gap-2 pr-4">
+            <span className={`px-3 py-1 rounded-full text-xs font-black shadow-sm ${
+              item.type === 'Lost'
+                ? 'bg-rose-500 text-white'
+                : 'bg-emerald-500 text-white'
+            }`}>
+              {item.type === 'Lost' ? '🔴 LOST ITEM REPORT' : '🟢 FOUND ITEM REPORT'}
             </span>
-          )}
 
-          {item.status === 'Recovered' && (
-            <span className="bg-orange-100 text-orange-800 border border-orange-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
-              <span className="w-2 h-2 rounded-full bg-orange-500" />
-              <span>🟠 STATUS: RECOVERED (Awaiting Owner Receipt)</span>
-            </span>
-          )}
+            {item.status === 'Pending' && (
+              <span className="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>🟡 STATUS: PENDING</span>
+              </span>
+            )}
 
-          {item.status === 'Found' && (
-            <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>🟢 STATUS: COMPLETED & RETURNED</span>
-            </span>
-          )}
+            {item.status === 'Recovered' && (
+              <span className="bg-orange-100 text-orange-800 border border-orange-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                <span>🟠 STATUS: RECOVERED</span>
+              </span>
+            )}
+
+            {item.status === 'Found' && (
+              <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-black px-3 py-1 rounded-full flex items-center space-x-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>🟢 STATUS: RETURNED</span>
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shrink-0"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Item Title */}
-        <h2 className="text-2xl font-black text-slate-900 mb-2 leading-tight">
-          {item.title}
-        </h2>
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+          {/* Item Title */}
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+            {item.title}
+          </h2>
 
         {/* Image Preview or Local Storage Auto-Purged State */}
         <div className="w-full h-64 bg-slate-100 rounded-2xl overflow-hidden mb-5 border border-orange-100 relative">
@@ -274,8 +277,10 @@ export const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
           )}
         </div>
 
-        {/* Interactive Action Buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-orange-100">
+        </div> {/* End Scrollable Body */}
+
+        {/* Sticky Footer Interactive Action Buttons */}
+        <div className="px-5 py-3.5 border-t border-orange-100 flex flex-wrap items-center justify-between gap-3 shrink-0 bg-slate-50/90 rounded-b-3xl z-10">
           <div className="flex items-center space-x-3">
             {/* Report Fake Link */}
             <button

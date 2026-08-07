@@ -34,20 +34,25 @@
 }
 
 *, ::before, ::after {
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  text-rendering: geometricPrecision !important;
-  font-smooth: always !important;
+  text-rendering: optimizeLegibility;
 }
 
 html, body {
   background-color: #fff7ed;
   color: #0f172a;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  text-rendering: geometricPrecision !important;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Ensure inputs, selects, textareas inherit Plus Jakarta Sans cleanly */
+input, select, textarea, button {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Date/time picker consistency across browsers */
+input[type="date"], input[type="time"] {
+  color-scheme: light;
+  min-height: 2.25rem;
 }
 

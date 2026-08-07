@@ -51,16 +51,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white border-b-2 border-orange-200 text-slate-800 shadow-sm">
       {/* Top Banner Counter Strip */}
-      <div className="bg-orange-50 px-4 py-1.5 border-b border-orange-100 text-xs font-semibold text-slate-600">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div className="bg-orange-50 px-4 py-1.5 border-b border-orange-100 text-xs font-semibold text-slate-600 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 min-w-max sm:min-w-0">
           <div className="flex items-center space-x-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-slate-700 font-bold">Campus Lost & Found Live Portal</span>
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="text-slate-700 font-bold whitespace-nowrap">Campus Lost & Found Live Portal</span>
             <span className="text-orange-200">|</span>
-            <span className="text-slate-500">Official Student & Staff Network</span>
+            <span className="text-slate-500 whitespace-nowrap">Official Student & Staff Network</span>
           </div>
 
-          <div className="flex items-center space-x-6 text-xs font-bold">
+          <div className="flex items-center space-x-4 sm:space-x-6 text-xs font-bold whitespace-nowrap">
             <div className="flex items-center space-x-1.5 text-slate-600">
               <Users className="w-3.5 h-3.5 text-orange-500" />
               <span>👥 <strong className="text-slate-800">{stats.totalUsers}</strong> Users</span>
@@ -78,22 +78,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4">
         {/* Brand Logo */}
         <div 
           onClick={() => setActiveTab('home')}
-          className="flex items-center space-x-3 cursor-pointer group"
+          className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer group shrink-0"
         >
-          <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg text-white font-black group-hover:scale-105 transition-transform">
-            <span className="text-white font-black text-lg">L&F</span>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg text-white font-black group-hover:scale-105 transition-transform shrink-0">
+            <span className="text-white font-black text-base sm:text-lg">L&F</span>
           </div>
-          <div>
+          <div className="shrink-0 leading-tight">
             <div className="flex items-center space-x-1.5">
-              <h1 className="text-xl font-black text-slate-800 tracking-tight">
+              <h1 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight whitespace-nowrap">
                 Campus <span className="text-orange-500">Lost & Found</span>
               </h1>
             </div>
-            <span className="text-[11px] text-slate-500 font-semibold tracking-wide block -mt-1">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 font-semibold tracking-wide block mt-0.5 whitespace-nowrap">
               Privacy-First Student Network
             </span>
           </div>

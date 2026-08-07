@@ -80,7 +80,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
   return (
     <div 
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static print:block cursor-pointer"
+      className="fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-2 sm:p-4 overflow-hidden print:p-0 print:bg-white print:static print:block cursor-pointer"
     >
       {/* Printable CSS inject */}
       <style>
@@ -112,45 +112,49 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
 
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="bg-white border border-orange-100 rounded-3xl max-w-xl w-full my-6 p-6 shadow-2xl relative text-slate-800 overflow-hidden print:max-w-none print:w-full print:rounded-none print:shadow-none print:p-0 cursor-default"
+        className="bg-white border-2 border-orange-200 rounded-3xl max-w-xl w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col shadow-2xl relative text-slate-800 my-auto print:max-w-none print:w-full print:rounded-none print:shadow-none print:p-0 cursor-default"
       >
-        {/* Close Button (hidden in print) */}
-        <button
-          onClick={onClose}
-          className="no-print absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full bg-slate-100 transition-colors z-20"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Controls Bar */}
-        <div className="no-print flex items-center justify-between border-b border-orange-100 pb-4 mb-4 pr-10">
-          <div className="flex items-center space-x-2">
+        {/* Sticky Header (hidden in print) */}
+        <div className="no-print px-5 py-3.5 border-b border-orange-100 flex items-center justify-between shrink-0 bg-white rounded-t-3xl relative z-20">
+          <div className="flex items-center space-x-2 pr-2">
             <QrCode className="w-5 h-5 text-orange-500 shrink-0" />
             <div>
-              <h2 className="text-lg font-black text-slate-900 leading-tight">Campus QR & Printable Poster</h2>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">Campus QR & Printable Poster</h2>
               <p className="text-[11px] text-slate-500 font-medium">Scan code on mobile to view report directly</p>
             </div>
           </div>
 
-          <div className="flex bg-orange-50 p-1 rounded-xl border border-orange-200">
+          <div className="flex items-center space-x-2 shrink-0">
+            <div className="flex bg-orange-50 p-1 rounded-xl border border-orange-200">
+              <button
+                onClick={() => setViewMode('poster')}
+                className={`px-2.5 py-1 text-xs font-black rounded-lg transition-all ${
+                  viewMode === 'poster' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Poster
+              </button>
+              <button
+                onClick={() => setViewMode('qr-only')}
+                className={`px-2.5 py-1 text-xs font-black rounded-lg transition-all ${
+                  viewMode === 'qr-only' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                QR Display
+              </button>
+            </div>
+
             <button
-              onClick={() => setViewMode('poster')}
-              className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                viewMode === 'poster' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors shrink-0"
             >
-              Print Poster
-            </button>
-            <button
-              onClick={() => setViewMode('qr-only')}
-              className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
-                viewMode === 'qr-only' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              QR Display
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
+
+        {/* Scrollable Body Container */}
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-xs">
 
         {/* PRINTABLE CAMPUS FLYER & POSTER CONTAINER */}
         <div id="printable-campus-flyer" className="space-y-4">
@@ -268,22 +272,23 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
               </p>
             </div>
           )}
-        </div>
+        </div> {/* End #printable-campus-flyer */}
+      </div> {/* End Scrollable Body */}
 
-        {/* Action Buttons (Hidden when printing) */}
-        <div className="no-print mt-6 pt-4 border-t border-orange-100 flex flex-wrap items-center justify-between gap-3">
+      {/* Action Buttons (Hidden when printing) */}
+      <div className="no-print px-5 py-3 border-t border-orange-100 flex flex-wrap items-center justify-between gap-2.5 shrink-0 bg-slate-50/90 rounded-b-3xl">
           <div className="flex items-center space-x-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white font-black text-xs rounded-xl shadow-md shadow-orange-200 flex items-center space-x-1.5 transition-all"
+              className="px-3.5 py-2 bg-orange-500 hover:bg-orange-400 text-white font-black text-xs rounded-xl shadow-md shadow-orange-200 flex items-center space-x-1.5 transition-all"
             >
               <Printer className="w-4 h-4" />
-              <span>Print Campus Flyer</span>
+              <span>Print Flyer</span>
             </button>
 
             <button
               onClick={handleDownloadQR}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-all"
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-all"
             >
               <Download className="w-4 h-4 text-orange-400" />
               <span>Download QR</span>
@@ -293,17 +298,17 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
           <div className="flex items-center space-x-2">
             <button
               onClick={handleCopyLink}
-              className="px-3.5 py-2 bg-white hover:bg-orange-50 border border-orange-200 text-slate-700 font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-all"
+              className="px-3 py-2 bg-white hover:bg-orange-50 border border-orange-200 text-slate-700 font-bold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-all"
             >
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-700 font-black">Link Copied!</span>
+                  <span className="text-emerald-700 font-black">Copied!</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 text-slate-400" />
-                  <span>Copy Direct Link</span>
+                  <span>Copy Link</span>
                 </>
               )}
             </button>
@@ -314,16 +319,16 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ item, onClose, onSimul
                   onSimulateScan(item.id);
                   onClose();
                 }}
-                className="px-3.5 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-black text-xs rounded-xl border border-emerald-300 flex items-center space-x-1.5 transition-all"
+                className="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-black text-xs rounded-xl border border-emerald-300 flex items-center space-x-1.5 transition-all"
               >
                 <Smartphone className="w-4 h-4 text-emerald-600" />
-                <span>Test Scan Mobile View</span>
+                <span>Test Scan</span>
               </button>
             )}
 
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-300 transition-all flex items-center space-x-1"
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-300 transition-all flex items-center space-x-1"
             >
               <X className="w-4 h-4 text-slate-500" />
               <span>Close</span>
