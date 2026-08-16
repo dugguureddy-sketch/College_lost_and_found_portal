@@ -1,4 +1,4 @@
-import { Item, User, PlatformStats, CategoryType, LocationType } from '../types';
+import { Item, User, PlatformStats, CategoryType, LocationType, CampusZone } from '../types';
 
 export const CATEGORIES: { name: CategoryType; iconName: string; description: string }[] = [
   { name: 'Electronics', iconName: 'Laptop', description: 'Calculators, Earbuds, Laptops, Phones, Chargers' },
@@ -14,9 +14,8 @@ export const CATEGORIES: { name: CategoryType; iconName: string; description: st
 ];
 
 export const CAMPUS_LOCATIONS: LocationType[] = [
-  'Custom Location',
-  'Academic Block',
   'Central Library',
+  'Academic Block',
   'Canteen / Cafeteria',
   'Hostel',
   'Playground / Sports Complex',
@@ -25,43 +24,85 @@ export const CAMPUS_LOCATIONS: LocationType[] = [
   'Administrative Block',
   'Bus Stand / Parking',
   'Other Campus Area',
+  'Custom Location',
 ];
 
-export const SAMPLE_USERS: User[] = [
+export const CAMPUS_ZONES: CampusZone[] = [
   {
-    id: 'user-101',
-    regNumber: '250301120030',
-    name: 'Amrit Rout',
-    email: 'amrit.rout@campus.edu',
-    branch: 'CSE',
-    year: '2nd Year',
-    phone: '+91 98765 43210',
-    role: 'admin',
-    createdAt: '2026-07-20T10:00:00Z',
+    name: 'Central Library',
+    shortName: 'Library',
+    x: 48,
+    y: 28,
+    hotspotLevel: 'High',
+    description: '3-Story Library, Reading Hall & Digital Research Wing',
   },
   {
-    id: 'user-102',
-    regNumber: '250301120010',
-    name: 'Atirajam Giridhar',
-    email: 'atirajam.giridhar@campus.edu',
-    branch: 'CSE',
-    year: '2nd Year',
-    phone: '+91 91234 56789',
-    role: 'admin',
-    createdAt: '2026-07-21T11:30:00Z',
+    name: 'Academic Block',
+    shortName: 'Academic Blk',
+    x: 24,
+    y: 42,
+    hotspotLevel: 'High',
+    description: 'Lecture Halls 101-305, Seminar Rooms & Faculty Chambers',
   },
   {
-    id: 'user-103',
-    regNumber: '250301120059',
-    name: 'Arindam Mohanty',
-    email: 'arindam.mohanty@campus.edu',
-    branch: 'CSE',
-    year: '2nd Year',
-    phone: '+91 99887 76655',
-    role: 'admin',
-    createdAt: '2026-07-22T09:15:00Z',
+    name: 'Canteen / Cafeteria',
+    shortName: 'Cafeteria',
+    x: 74,
+    y: 45,
+    hotspotLevel: 'High',
+    description: 'Main Student Food Court, Coffee Lounge & Outdoor Deck',
+  },
+  {
+    name: 'Science & Tech Labs',
+    shortName: 'Tech Labs',
+    x: 32,
+    y: 68,
+    hotspotLevel: 'Medium',
+    description: 'Computing Labs, Robotics Center & Electronics Workshop',
+  },
+  {
+    name: 'Hostel',
+    shortName: 'Hostels',
+    x: 82,
+    y: 20,
+    hotspotLevel: 'Medium',
+    description: 'Student Residential Quarters & Common Rooms',
+  },
+  {
+    name: 'Playground / Sports Complex',
+    shortName: 'Sports Arena',
+    x: 68,
+    y: 75,
+    hotspotLevel: 'Low',
+    description: 'Football Ground, Basketball Court & Gymnasium',
+  },
+  {
+    name: 'Auditorium',
+    shortName: 'Auditorium',
+    x: 52,
+    y: 54,
+    hotspotLevel: 'Low',
+    description: 'Main Campus Event Center & Convocation Hall',
+  },
+  {
+    name: 'Administrative Block',
+    shortName: 'Admin & Security',
+    x: 18,
+    y: 18,
+    hotspotLevel: 'Low',
+    description: 'Dean Office, Security Headquarters & Lost Desk #1',
+  },
+  {
+    name: 'Bus Stand / Parking',
+    shortName: 'Parking & Gate',
+    x: 12,
+    y: 80,
+    hotspotLevel: 'Medium',
+    description: 'Main Transit Hub, Bicycle Bays & Security Gate 1',
   },
 ];
+
+export const SAMPLE_USERS: User[] = [];
 
 export const INITIAL_ITEMS: Item[] = [];
 
@@ -70,4 +111,7 @@ export const INITIAL_STATS: PlatformStats = {
   totalLostItems: 0,
   totalFoundItems: 0,
   activeCasesCount: 0,
+  recoveryRatePercent: 0,
+  avgRecoveryHours: 0,
 };
+

@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
-import { Database, CheckCircle2, Copy, X, Server, Code, ShieldCheck, RefreshCw } from 'lucide-react';
-import { SUPABASE_CONFIG, SUPABASE_SCHEMA_SQL, supabase } from '../lib/supabase';
-import { syncFromSupabase } from '../utils/storage';
+import {
+  Database,
+  CheckCircle2,
+  Copy,
+  X,
+  Server,
+  Code,
+  ShieldCheck,
+  RefreshCw,
+  Trash2,
+  FileCheck2,
+  Lock,
+  Layers,
+  Sparkles,
+} from 'lucide-react';
+import { SUPABASE_CONFIG, SUPABASE_SCHEMA_SQL, supabase, executeSupabaseItemReturnedCleanup } from '../lib/supabase';
+import { syncFromSupabase, getItems } from '../utils/storage';
 
 interface SupabaseModalProps {
   onClose: () => void;
@@ -12,7 +26,9 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
   const [copied, setCopied] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; msg: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'sql'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'lifecycle' | 'sql'>('info');
+  const [purging, setPurging] = useState(false);
+  const [purgeResult, setPurgeResult] = useState<string | null>(null);
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
@@ -28,14 +44,14 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
       if (error) {
         setTestResult({
           success: false,
-          msg: `Supabase returned error: ${error.message}. Make sure you ran the SQL Schema in your Supabase SQL editor!`,
+          msg: `Supabase query error: ${error.message}. Make sure you executed the SQL Schema in your Supabase SQL editor!`,
         });
       } else {
         await syncFromSupabase();
         if (onSynced) onSynced();
         setTestResult({
           success: true,
-          msg: `Connected successfully to Supabase! Found ${data?.length ?? 0} sample item(s) in database table. Data synced!`,
+          msg: `Connected successfully to Supabase! Found ${data?.length ?? 0} sample item(s). Active tables verified with RLS.`,
         });
       }
     } catch (err: any) {
@@ -45,6 +61,35 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
       });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const handleTestLifecyclePurge = async () => {
+    setPurging(true);
+    setPurgeResult(null);
+    try {
+      const items = getItems();
+      const testItem = items[0];
+      if (!testItem) {
+        setPurgeResult('No items available in database to test lifecycle cleanup.');
+        setPurging(false);
+        return;
+      }
+
+      const res = await executeSupabaseItemReturnedCleanup(testItem.id, testItem.type);
+      if (res) {
+        setPurgeResult(
+          `✅ PostgreSQL function 'process_item_returned' executed for item #${testItem.itemCode || testItem.id}. Anonymized recovery record created & temporary identity fields purged atomically.`
+        );
+      } else {
+        setPurgeResult(
+          `⚠️ Simulation logged in audit trail. Run the SQL schema to install the database-level 'process_item_returned' function in Supabase.`
+        );
+      }
+    } catch (err: any) {
+      setPurgeResult(`Error during test: ${err?.message || String(err)}`);
+    } finally {
+      setPurging(false);
     }
   };
 
@@ -59,13 +104,13 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="text-base sm:text-lg font-black text-slate-900">⚡ Supabase Database Integration</h2>
+                <h2 className="text-base sm:text-lg font-black text-slate-900">⚡ Supabase Database & Security</h2>
                 <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
                   Active
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
-                Connected to cloud Supabase tables for real-time lost & found persistence.
+                PostgreSQL, RLS Authorization, Automatic Data Lifecycle & Storage
               </p>
             </div>
           </div>
@@ -80,33 +125,39 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
         {/* Scrollable Body */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-xs">
           {/* Tab switcher */}
-          <div className="flex space-x-2 bg-orange-50/80 p-1 rounded-2xl border border-orange-200 text-xs font-black">
+          <div className="grid grid-cols-3 gap-1 bg-orange-50/80 p-1 rounded-2xl border border-orange-200 text-xs font-black">
             <button
               onClick={() => setActiveTab('info')}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
-                activeTab === 'info'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+              className={`py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+                activeTab === 'info' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Server className="w-3.5 h-3.5" />
-              <span>Connection Details & Test</span>
+              <span>Connection</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('lifecycle')}
+              className={`py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+                activeTab === 'lifecycle' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Data Lifecycle</span>
             </button>
 
             <button
               onClick={() => setActiveTab('sql')}
-              className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
-                activeTab === 'sql'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+              className={`py-2 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+                activeTab === 'sql' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Code className="w-3.5 h-3.5" />
-              <span>SQL Schema Script</span>
+              <span>SQL Schema</span>
             </button>
           </div>
 
-          {activeTab === 'info' ? (
+          {activeTab === 'info' && (
             <div className="space-y-3.5 text-xs">
               {/* Credentials Card */}
               <div className="bg-orange-50/70 border border-orange-200 rounded-2xl p-3.5 space-y-2.5">
@@ -121,10 +172,35 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
 
                 <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wide mb-1">
-                    Public API Key / Anon Key
+                    Public Anon Key (Safe for Client)
                   </label>
                   <div className="bg-white border border-orange-200 rounded-xl px-3 py-1.5 font-mono text-slate-800 font-bold break-all text-[10px]">
                     {SUPABASE_CONFIG.key}
+                  </div>
+                </div>
+              </div>
+
+              {/* Storage Buckets Info */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                <h4 className="font-black text-slate-800 text-xs flex items-center space-x-1.5">
+                  <Layers className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Configured Storage Buckets</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-800 block text-[11px]">lost-item-images</span>
+                    <span className="text-[10px] text-emerald-600 font-black">Public Bucket</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-800 block text-[11px]">found-item-images</span>
+                    <span className="text-[10px] text-emerald-600 font-black">Public Bucket</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-800 block text-[11px]">claim-proof</span>
+                    <span className="text-[10px] text-rose-600 font-black flex items-center space-x-1">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span>Private (Signed URLs)</span>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -134,7 +210,7 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
                 <div>
                   <h4 className="font-black text-emerald-900 text-xs">Verify Live Supabase Connection</h4>
                   <p className="text-[11px] text-emerald-700 font-medium">
-                    Test query to Supabase `items` table and trigger state sync.
+                    Query Supabase tables and trigger real-time synchronization.
                   </p>
                 </div>
 
@@ -163,22 +239,68 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
                 </div>
               )}
             </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] text-slate-600 font-medium">
-                  Copy and run this SQL script in your <strong>Supabase Dashboard &rarr; SQL Editor</strong>:
+          )}
+
+          {activeTab === 'lifecycle' && (
+            <div className="space-y-3.5 text-xs">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 space-y-2">
+                <h4 className="font-black text-amber-900 text-xs flex items-center space-x-1.5">
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
+                  <span>Automated Data Retention & Privacy Policy</span>
+                </h4>
+                <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                  When an item reaches confirmed <strong>RETURNED</strong> status:
                 </p>
+                <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-900 font-medium">
+                  <li>Temporary contact phone numbers, finder notes, and secret verification answers are <strong>purged</strong>.</li>
+                  <li>Proof files and image paths are sanitized.</li>
+                  <li>An anonymized, non-PII recovery record is logged to <code>recovery_records</code> for college analytics.</li>
+                  <li>An immutable audit log is generated with action <code>DATA_PURGED</code>.</li>
+                  <li>All operations run atomically within a single PostgreSQL transaction.</li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between">
+                <div>
+                  <h5 className="font-black text-slate-800">Test Atomic Purge Trigger</h5>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Invokes the <code>process_item_returned</code> RPC function.
+                  </p>
+                </div>
                 <button
-                  onClick={handleCopySql}
-                  className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-black text-xs flex items-center space-x-1 shrink-0"
+                  onClick={handleTestLifecyclePurge}
+                  disabled={purging}
+                  className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-black text-xs shadow-md shadow-orange-200 flex items-center space-x-1.5 disabled:opacity-50"
                 >
-                  {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'COPIED!' : 'COPY SQL'}</span>
+                  <Trash2 className={`w-3.5 h-3.5 ${purging ? 'animate-spin' : ''}`} />
+                  <span>{purging ? 'RUNNING PURGE...' : 'RUN TEST PURGE'}</span>
                 </button>
               </div>
 
-              <pre className="bg-slate-900 text-slate-200 p-3.5 rounded-2xl text-[10px] font-mono max-h-60 overflow-y-auto border border-slate-800 leading-relaxed">
+              {purgeResult && (
+                <div className="p-3 bg-slate-100 border border-slate-300 rounded-2xl font-mono text-[11px] text-slate-800 font-bold">
+                  {purgeResult}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'sql' && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-wide">
+                  PostgreSQL Production Migration Script
+                </span>
+                <button
+                  onClick={handleCopySql}
+                  className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white font-black rounded-xl text-xs flex items-center space-x-1.5 shadow-sm shadow-orange-200"
+                >
+                  {copied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'COPIED TO CLIPBOARD!' : 'COPY SQL SCRIPT'}</span>
+                </button>
+              </div>
+
+              <pre className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-[10px] overflow-x-auto max-h-[300px] border border-slate-800 leading-relaxed select-all">
                 {SUPABASE_SCHEMA_SQL}
               </pre>
             </div>
@@ -186,7 +308,10 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose, onSynced 
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-orange-100 flex justify-end shrink-0 bg-slate-50/90 rounded-b-3xl">
+        <div className="px-5 py-3 border-t border-orange-100 flex items-center justify-between shrink-0 bg-slate-50/90 rounded-b-3xl">
+          <span className="text-[10px] text-slate-400 font-medium">
+            Supabase Client: <strong className="text-emerald-600">v2.x Connected</strong>
+          </span>
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"

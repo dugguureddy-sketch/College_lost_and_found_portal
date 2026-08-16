@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Item, 
-  User, 
-  PlatformStats, 
-  Claim, 
-  Report, 
-  CategoryType, 
-  LocationType, 
-  ItemType 
+import {
+  Item,
+  User,
+  PlatformStats,
+  Claim,
+  Report,
+  CategoryType,
+  LocationType,
+  ItemType,
 } from './types';
-import { 
-  initializeStorage, 
-  getItems, 
-  getUsers, 
-  getStats, 
-  getClaims, 
-  getReports, 
+import {
+  initializeStorage,
+  getItems,
+  getUsers,
+  getStats,
+  getClaims,
+  getReports,
   getCurrentUser,
   setCurrentUser,
   registerUser,
@@ -34,7 +34,7 @@ import {
   resetDataToSeed,
   deleteUser,
   updateItemDetails,
-  purgeItemPrivacyData
+  purgeItemPrivacyData,
 } from './utils/storage';
 
 import { Navbar } from './components/Navbar';
@@ -54,9 +54,12 @@ import { AuthModal } from './components/AuthModal';
 import { SupabaseModal } from './components/SupabaseModal';
 import { QRCodeModal } from './components/QRCodeModal';
 import { MovableNotification } from './components/MovableNotification';
+import { CampusMapView } from './components/CampusMapView';
+import { AIImageSearchModal } from './components/AIImageSearchModal';
+import { SecureChatModal } from './components/SecureChatModal';
 
 import { CATEGORIES } from './data/initialData';
-import { Sparkles, ArrowRight, ShieldCheck, Zap, HeartHandshake, QrCode } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Zap, HeartHandshake, QrCode, MapPin } from 'lucide-react';
 
 export default function App() {
   // Initialize storage once & check URL for scanned QR deep links
@@ -85,7 +88,9 @@ export default function App() {
   const [reports, setReportsState] = useState<Report[]>(getReports());
 
   // Page View Tab State
-  const [activeTab, setActiveTab] = useState<'home' | 'explore' | 'smart-match' | 'my-dashboard' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<
+    'home' | 'explore' | 'smart-match' | 'map' | 'my-dashboard' | 'admin'
+  >('home');
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,6 +100,8 @@ export default function App() {
   // Modals state
   const [activeItemForDetails, setActiveItemForDetails] = useState<Item | null>(null);
   const [activeItemForQRCode, setActiveItemForQRCode] = useState<Item | null>(null);
+  const [activeItemForChat, setActiveItemForChat] = useState<Item | null>(null);
+  const [showImageSearchModal, setShowImageSearchModal] = useState(false);
   const [reportModalType, setReportModalType] = useState<ItemType | null>(null);
   const [itemForFoundModal, setItemForFoundModal] = useState<Item | null>(null);
   const [itemForConfirmReceivedModal, setItemForConfirmReceivedModal] = useState<Item | null>(null);
@@ -286,9 +293,11 @@ export default function App() {
         onOpenReportModal={handleOpenReportModal}
         onOpenAuthModal={() => setShowAuthModal(true)}
         onOpenSupabaseModal={() => setShowSupabaseModal(true)}
+        onOpenImageSearch={() => setShowImageSearchModal(true)}
         onLogout={() => setShowAuthModal(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onSelectItem={(item) => setActiveItemForDetails(item)}
       />
 
       {/* Main Content Router */}
@@ -318,7 +327,9 @@ export default function App() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-xl font-black text-slate-900">Browse By Category</h2>
-                    <p className="text-xs text-slate-500 font-medium">Find items lost or found across campus categories</p>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Find items lost or found across campus categories
+                    </p>
                   </div>
                 </div>
 
@@ -355,7 +366,7 @@ export default function App() {
                     onClick={() => setActiveTab('explore')}
                     className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center space-x-1"
                   >
-                    <span>View All Lost Items ({items.filter(i => i.type === 'Lost').length})</span>
+                    <span>View All Lost Items ({items.filter((i) => i.type === 'Lost').length})</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -385,7 +396,7 @@ export default function App() {
                     onClick={() => setActiveTab('explore')}
                     className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center space-x-1"
                   >
-                    <span>View All Found Items ({items.filter(i => i.type === 'Found').length})</span>
+                    <span>View All Found Items ({items.filter((i) => i.type === 'Found').length})</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -427,7 +438,8 @@ export default function App() {
                     </div>
                     <h4 className="font-black text-slate-900 text-sm mb-1">Smart Match or Finder Contact</h4>
                     <p className="text-xs text-slate-600 font-medium">
-                      Finder clicks "Yes, I've Found This Item" to exchange contact details securely and set status to <strong className="text-orange-600 font-bold">🟠 RECOVERED</strong>.
+                      Finder clicks "Yes, I've Found This Item" to exchange contact details securely and set status to{' '}
+                      <strong className="text-orange-600 font-bold">🟠 RECOVERED</strong>.
                     </p>
                   </div>
 
@@ -437,7 +449,8 @@ export default function App() {
                     </div>
                     <h4 className="font-black text-slate-900 text-sm mb-1">Confirm Received & Auto Cleanup</h4>
                     <p className="text-xs text-slate-600 font-medium">
-                      Owner confirms receipt ("YES, I GOT IT BACK") &rarr; Status becomes <strong className="text-emerald-700 font-bold">🟢 FOUND</strong>, statistics increment (+1), and private case data auto-clears.
+                      Owner confirms receipt ("YES, I GOT IT BACK") &rarr; Status becomes{' '}
+                      <strong className="text-emerald-700 font-bold">🟢 FOUND</strong>, statistics increment (+1), and private case data auto-clears.
                     </p>
                   </div>
                 </div>
@@ -467,10 +480,20 @@ export default function App() {
             items={items}
             onSelectPair={(lostItem, foundItem) => setActiveItemForDetails(lostItem)}
             onOpenReportModal={handleOpenReportModal}
+            onOpenChat={(item) => setActiveItemForChat(item)}
           />
         )}
 
-        {/* VIEW 4: MY ACTIVITY DASHBOARD */}
+        {/* VIEW 4: CAMPUS INTERACTIVE MAP */}
+        {activeTab === 'map' && (
+          <CampusMapView
+            items={items}
+            onSelectItem={(i) => setActiveItemForDetails(i)}
+            onOpenReportModal={handleOpenReportModal}
+          />
+        )}
+
+        {/* VIEW 5: MY ACTIVITY DASHBOARD */}
         {activeTab === 'my-dashboard' && (
           <UserDashboard
             currentUser={currentUser}
@@ -484,7 +507,7 @@ export default function App() {
           />
         )}
 
-        {/* VIEW 5: ADMIN DASHBOARD */}
+        {/* VIEW 6: ADMIN DASHBOARD */}
         {activeTab === 'admin' && (
           <AdminDashboard
             stats={stats}
@@ -556,6 +579,31 @@ export default function App() {
             setActiveItemForDetails(null);
             setActiveItemForQRCode(i);
           }}
+          onOpenChat={(i) => {
+            setActiveItemForChat(i);
+          }}
+          onCustodyUpdated={refreshAllStates}
+        />
+      )}
+
+      {/* AI Vision Image Search Modal */}
+      {showImageSearchModal && (
+        <AIImageSearchModal
+          items={items}
+          onClose={() => setShowImageSearchModal(false)}
+          onSelectItem={(i) => {
+            setShowImageSearchModal(false);
+            setActiveItemForDetails(i);
+          }}
+        />
+      )}
+
+      {/* Secure In-App Anonymous Chat Modal */}
+      {activeItemForChat && (
+        <SecureChatModal
+          item={activeItemForChat}
+          currentUser={currentUser}
+          onClose={() => setActiveItemForChat(null)}
         />
       )}
 
@@ -579,6 +627,7 @@ export default function App() {
         <ReportModal
           initialType={reportModalType}
           currentUser={currentUser}
+          existingItems={items}
           onClose={() => setReportModalType(null)}
           onSubmit={handleReportSubmit}
         />
@@ -635,10 +684,7 @@ export default function App() {
 
       {/* 8. Supabase Database Inspector & SQL Schema Modal */}
       {showSupabaseModal && (
-        <SupabaseModal
-          onClose={() => setShowSupabaseModal(false)}
-          onSynced={refreshAllStates}
-        />
+        <SupabaseModal onClose={() => setShowSupabaseModal(false)} onSynced={refreshAllStates} />
       )}
 
       {/* Interactive Movable Live Notification Demo Widget */}
